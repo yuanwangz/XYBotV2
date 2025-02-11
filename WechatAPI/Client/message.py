@@ -166,7 +166,15 @@ class MessageMixin(WechatAPIClientBase):
         if image_path:
             with open(image_path, 'rb') as f:
                 image_base64 = base64.b64encode(f.read()).decode()
-
+        elif image_base64.startswith(('http://', 'https://')):
+            async with aiohttp.ClientSession() as session:
+                async with session.get(image_base64) as response:
+                    if response.status == 200:
+                        image_data = await response.read()
+                        image_base64 = base64.b64encode(image_data).decode()
+                    else:
+                        raise ValueError(f"Failed to download image from {image_base64}")
+        
         async with aiohttp.ClientSession() as session:
             json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Base64": image_base64}
             response = await session.post(f'http://{self.ip}:{self.port}/SendImageMsg', json=json_param)
