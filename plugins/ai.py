@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import aiosqlite
 from langchain_core.messages import HumanMessage
+from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import START, MessagesState, StateGraph
@@ -364,7 +365,7 @@ class Ai(PluginBase):
             # 消息类型
             if message["MsgType"] == 1 and self.text_input:  # 文本输入
                 input_message = [
-                    HumanMessage(content=self.prompt),
+                    SystemMessage(content=self.prompt),
                     HumanMessage(content=user_input)
                 ]
 
@@ -381,7 +382,7 @@ class Ai(PluginBase):
                     )
                     return None
                 input_message = [
-                    HumanMessage(content=self.prompt),
+                    SystemMessage(content=self.prompt),
                     HumanMessage(content=[
                         {"type": "image_url", "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}},
                     ])
@@ -391,7 +392,7 @@ class Ai(PluginBase):
                 if self.voice_input == "Native":
                     wav_base64 = bot.byte_to_base64(user_input)
                     input_message = [
-                        HumanMessage(content=self.prompt),
+                        SystemMessage(content=self.prompt),
                         HumanMessage(content=[
                             {"type": "input_audio", "input_audio": {"data": wav_base64, "format": "wav"}},
                         ])
@@ -399,7 +400,7 @@ class Ai(PluginBase):
                 else:
                     text_input = await self.get_text_from_voice(user_input)
                     input_message = [
-                        HumanMessage(content=self.prompt),
+                        SystemMessage(content=self.prompt),
                         HumanMessage(content=text_input)
                     ]
 
