@@ -28,7 +28,7 @@ base-url = ""   # 会覆盖来自主设置的设置。不设置则会从主设�
 api-key = ""   # 会覆盖来自主设置的设置。不设置则会从主设置读取。
 
 # AI模型名
-model-name = "" # 修改后别忘了修改模型支持啥
+model-name = "claude-3.5-sonnet" # 修改后别忘了修改模型支持啥
 
 # 模型支持哪些输入？
 text-input = true
@@ -55,12 +55,7 @@ max-history-messages = 5  # 最大历史消息数
 model_kwargs = { } # 可填入更多模型设置
 
 # AI prompt
-prompt = """你是一个叫XYBot友好的微信AI机器人。请用简洁、专业的方式回答问题。
-- 回答不能以换行符开头
-- 回答要用纯文本，不能使用Markdown语法
-- 用户用什么语言问，就用什么语言回答
-- 如果用户问了关于微信机器人的问题，例如：怎么获取积分？怎么使用ChatGPT功能？，统一回答请查阅菜单中的帮助
-- 对于代码相关问题，请提供清晰的示例和解释"""
+prompt = """你是一个叫XYBot友好的微信AI机器人。"""
 
 [Ai.GenerateImage]
 # 重要：接口需要是OpenAI API格式
@@ -196,7 +191,7 @@ command = ["新闻", "新闻速递", "新闻资讯", "新闻头条", "新闻列�
 enable = true
 command = ["积分交易", "积分转账", "转账积分", "积分赠送", "赠送积分", "积分转移", "转移积分", "送积分", "积分送人", "送人积分", "积分赠予", "赠予"]
 command-format = """
------XYBot-----
+-----Bot-----
 🔄转账积分：
 积分转账 积分数 @用户
 """
@@ -205,7 +200,7 @@ command-format = """
 enable = true
 command = ["战争雷霆", "战雷查询", "战争雷霆玩家", "战雷玩家"]
 command-format = """
------XYBot-----
+-----Bot-----
 🎮战争雷霆玩家查询：
 战雷查询 玩家名
 """
@@ -214,7 +209,7 @@ command-format = """
 enable = true
 command = ["点歌", "音乐", "音乐点播", "点播音乐", "音乐点歌", "点歌"]
 command-format = """
------XYBot-----
+-----Bot-----
 🎵点歌指令：
 点歌 歌曲名
 """
@@ -223,7 +218,7 @@ command-format = """
 enable = true
 command = ["抽奖", "幸运抽奖", "抽奖活动", "抽奖指令", "幸运大抽奖", "大抽奖", "积分抽奖"]
 command-format = """
------XYBot-----
+-----Bot-----
 🎉抽奖指令：
 抽奖 奖池名 次数
 次数可选
@@ -295,7 +290,7 @@ menu = """-======== XYBot ========-
 
 ⚙️查看管理员菜单请发送：管理员菜单"""
 
-admin-menu = """-----XYBot-----
+admin-menu = """-----Bot-----
 ⚙️管理积分：
 ➕积分：
 加积分 积分 wxid/@用户
@@ -342,3 +337,13 @@ count = 3
 
 [GoodMorning]
 enable = true
+
+[KPI]
+enable = true
+command = ["绩效考核", "/绩效考核"]
+kpi-url = "" #kpi填写地址
+
+[HYXJ]
+enable = true
+command = ["汉语新解", "/汉语新解"]
+api-key = "t-12342234"
