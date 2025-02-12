@@ -41,11 +41,11 @@ class PointTrade(PluginBase):
             await bot.send_at_message(message["FromWxid"], self.command_format, [message["SenderWxid"]])
             return
         elif not command[1].isdigit():
-            await bot.send_at_message(message["FromWxid"], "\n-----XYBot-----\n🈚️转账积分无效(必须为正整数!)",
+            await bot.send_at_message(message["FromWxid"], "\n-----Bot-----\n🈚️转账积分无效(必须为正整数!)",
                                       [message["SenderWxid"]])
             return
         elif len(message["Ats"]) != 1:
-            await bot.send_at_message(message["FromWxid"], "-----XYBot-----\n转账失败❌\n🈚️转账人无效！",
+            await bot.send_at_message(message["FromWxid"], "-----Bot-----\n转账失败❌\n🈚️转账人无效！",
                                       [message["SenderWxid"]])
             return
 
@@ -58,7 +58,7 @@ class PointTrade(PluginBase):
         trader_points = self.db.get_points(trader_wxid)
 
         if trader_points < points:
-            await bot.send_at_message(message["FromWxid"], "\n-----XYBot-----\n转账失败❌\n积分不足！😭",
+            await bot.send_at_message(message["FromWxid"], "\n-----Bot-----\n转账失败❌\n积分不足！😭",
                                       [message["SenderWxid"]])
             return
 
@@ -70,7 +70,7 @@ class PointTrade(PluginBase):
         target_points = self.db.get_points(target_wxid)
 
         output = (
-            f"\n-----XYBot-----\n"
+            f"\n-----Bot-----\n"
             f"✅积分转账成功！✨\n"
             f"🤝{trader_nick} 现在有 {trader_points} 点积分➖\n"
             f"🤝{target_nick} 现在有 {target_points} 点积分➕\n"

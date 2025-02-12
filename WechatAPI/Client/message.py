@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from .base import *
 from .protect import protector
 from ..errors import *
+import re
 
 
 class MessageMixin(WechatAPIClientBase):
@@ -121,6 +122,17 @@ class MessageMixin(WechatAPIClientBase):
         if at is None:
             at = []
         at_str = ",".join(at)
+                
+        # 处理图片链接
+        img_pattern = r'!\[.*?\]\((.*?)\)'
+        img_matches = re.findall(img_pattern, content)
+        
+        # 提取图片链接并移除markdown格式
+        content = re.sub(img_pattern, '', content).strip()
+        # 如果有图片链接，保存供后续使用
+        if img_matches:
+            self.last_img_url = img_matches[0]
+            await self._send_image_message(wxid, image_base64=self.last_img_url)
 
         async with aiohttp.ClientSession() as session:
             json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Content": content, "Type": 1, "At": at_str}
@@ -174,7 +186,6 @@ class MessageMixin(WechatAPIClientBase):
                         image_base64 = base64.b64encode(image_data).decode()
                     else:
                         raise ValueError(f"Failed to download image from {image_base64}")
-        
         async with aiohttp.ClientSession() as session:
             json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Base64": image_base64}
             response = await session.post(f'http://{self.ip}:{self.port}/SendImageMsg', json=json_param)

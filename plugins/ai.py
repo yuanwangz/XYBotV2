@@ -255,7 +255,7 @@ class Ai(PluginBase):
                 if message["SenderWxid"] not in self.admins:
                     await bot.send_at_message(
                         message["FromWxid"],
-                        f"\n-----XYBot-----\n😠你没有这样做的权限！",
+                        f"\n-----Bot-----\n😠你没有这样做的权限！",
                         [message["SenderWxid"]]
                     )
                     return
@@ -264,13 +264,13 @@ class Ai(PluginBase):
                 if result:
                     await bot.send_at_message(
                         message["FromWxid"],
-                        f"\n-----XYBot-----\n🗑️清除成功✅",
+                        f"\n-----Bot-----\n🗑️清除成功✅",
                         [message["SenderWxid"]]
                     )
                 else:
                     await bot.send_at_message(
                         message["FromWxid"],
-                        f"\n-----XYBot-----\n清除失败，请查看日志",
+                        f"\n-----Bot-----\n清除失败，请查看日志",
                         [message["SenderWxid"]]
                     )
 
@@ -343,9 +343,10 @@ class Ai(PluginBase):
         from_wxid = message["FromWxid"]
         sender_wxid = message["SenderWxid"]
         user_input = message["Content"]
+        is_group = message["IsGroup"]
 
         if not user_input:
-            await bot.send_at_message(from_wxid, "\n-----XYBot-----\n你还没输入呀！🤔", [sender_wxid])
+            await bot.send_at_message(from_wxid, "\n-----Bot-----\n你还没输入呀！🤔", [sender_wxid] if is_group else [])
             return
 
         try:
@@ -375,7 +376,7 @@ class Ai(PluginBase):
                 if image_format not in self.image_formats:
                     await bot.send_at_message(
                         from_wxid,
-                        f"-----XYBot-----\n⚠️不支持该图片格式！支持: {self.image_formats}",
+                        f"-----Bot-----\n⚠️不支持该图片格式！支持: {self.image_formats}",
                         [sender_wxid]
                     )
                     return None
@@ -418,7 +419,7 @@ class Ai(PluginBase):
                     output = last_message.content
 
                 if output:
-                    await bot.send_at_message(from_wxid, "\n" + output, [sender_wxid])
+                    await bot.send_at_message(from_wxid, "\n" + output, [sender_wxid] if is_group else [])
 
             elif message["MsgType"] == 3 and self.image_output:  # 图片输出
                 if self.voice_output == "Native":
@@ -427,7 +428,7 @@ class Ai(PluginBase):
                     output = last_message.content
 
                 if output:
-                    await bot.send_at_message(from_wxid, "\n" + output, [sender_wxid])
+                    await bot.send_at_message(from_wxid, "\n" + output, [sender_wxid] if is_group else [])
 
             elif message["MsgType"] == 34 and self.voice_output != "None":  # 语音输出
                 if self.voice_output == "Native":  # 原生支持
@@ -436,7 +437,7 @@ class Ai(PluginBase):
                                                      voice_base64=last_message.additional_kwargs['audio']['data'],
                                                      format="wav")
                     elif last_message.content:  # 无语音，有文本
-                        await bot.send_at_message(from_wxid, "\n" + last_message.content, [sender_wxid])
+                        await bot.send_at_message(from_wxid, "\n" + last_message.content, [sender_wxid] if is_group else [])
                 else:  # 非原生
                     audio_byte = await self.get_voice_from_text(last_message.content)
                     audio_base64 = bot.byte_to_base64(audio_byte)
@@ -444,13 +445,13 @@ class Ai(PluginBase):
                                                  voice_base64=audio_base64,
                                                  format="wav")
             else:  # fallback
-                await bot.send_at_message(from_wxid, "\n" + last_message.content, [sender_wxid])
+                await bot.send_at_message(from_wxid, "\n" + last_message.content, [sender_wxid] if is_group else [])
 
             # 检查是否有图片生成tool call
             if last_message.additional_kwargs.get("tool_calls"):
                 for tool_call in last_message.additional_kwargs["tool_calls"]:
                     if tool_call["function"]["name"] == "GenerateImage":
-                        await bot.send_at_message(from_wxid, f"\n🖼️正在生成图片...", [sender_wxid])
+                        await bot.send_at_message(from_wxid, f"\n🖼️正在生成图片...", [sender_wxid] if is_group else [])
                         try:
                             prompt = json.loads(tool_call["function"]["arguments"])["prompt"]
                             b64_list = await self.generate_image(prompt)
@@ -458,12 +459,12 @@ class Ai(PluginBase):
                                 await bot.send_image_message(from_wxid, image_base64=img_b64)
                         except Exception as e:
                             logger.error(f"生成图片失败: {traceback.format_exc()}")
-                            await bot.send_at_message(from_wxid, f"\n生成图片失败: {str(e)}", [sender_wxid])
+                            await bot.send_at_message(from_wxid, f"\n生成图片失败: {str(e)}", [sender_wxid] if is_group else [])
 
         except Exception as e:
             await bot.send_at_message(
                 from_wxid,
-                f"-----XYBot-----\n❌请求失败：{str(e)}",
+                f"-----Bot-----\n❌请求失败：{str(e)}",
                 [sender_wxid]
             )
             logger.error(traceback.format_exc())
@@ -544,7 +545,7 @@ class Ai(PluginBase):
         except Exception as e:
             await bot.send_at_message(
                 message["FromWxid"],
-                f"-----XYBot-----\n❌删除失败：{str(e)}",
+                f"-----Bot-----\n❌删除失败：{str(e)}",
                 [message["SenderWxid"]]
             )
             logger.error(traceback.format_exc())
@@ -555,7 +556,7 @@ class Ai(PluginBase):
         self.db.save_llm_thread_id(message["SenderWxid"], "", self.model_name)
         await bot.send_at_message(
             message["FromWxid"],
-            f"\n-----XYBot-----\n🗑️清除成功✅",
+            f"\n-----Bot-----\n🗑️清除成功✅",
             [message["SenderWxid"]]
         )
         return
@@ -604,7 +605,7 @@ class Ai(PluginBase):
             else:
                 if self.db.get_points(wxid) < self.together_price:
                     await bot.send_at_message(message["FromWxid"],
-                                              f"\n-----XYBot-----\n"
+                                              f"\n-----Bot-----\n"
                                               f"😭你的积分不够啦！需要 {self.together_price} 积分",
                                               [wxid])
                     return False

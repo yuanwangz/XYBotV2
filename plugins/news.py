@@ -42,7 +42,7 @@ class News(PluginBase):
                     data = await resp.json()
 
             if data["code"] != 200:
-                await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n新闻获取失败！")
+                await bot.send_text_message(message["FromWxid"], "-----Bot-----\n新闻获取失败！")
                 return
 
             result = data.get("data", {}).get("result", {})

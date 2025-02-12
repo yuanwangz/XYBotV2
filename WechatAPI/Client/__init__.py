@@ -9,7 +9,6 @@ from .protect import protector
 from .protect import protector
 from .tool import ToolMixin
 from .user import UserMixin
-import re
 
 
 class WechatAPIClient(LoginMixin, MessageMixin, FriendMixin, ChatroomMixin, UserMixin,
@@ -45,20 +44,6 @@ class WechatAPIClient(LoginMixin, MessageMixin, FriendMixin, ChatroomMixin, User
             nickname = await self.get_nickname(id)
             output += f"@{nickname}\u2005"
 
-        # 处理图片链接
-        img_pattern = r'!\[.*?\]\((.*?)\)'
-        img_matches = re.findall(img_pattern, content)
+        output += content
         
-        # 提取图片链接并移除markdown格式
-        cleaned_content = re.sub(img_pattern, '', content).strip()
-        
-        # 拼接处理后的内容
-        output += cleaned_content
-        
-        # 如果有图片链接，保存供后续使用
-        if img_matches:
-            self.last_img_url = img_matches[0]
-            self.send_image_message(wxid, image_base64=self.last_img_url)
-        
-
         return await self.send_text_message(wxid, output, at)

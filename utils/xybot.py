@@ -23,7 +23,7 @@ class XYBot:
         self.ignore_mode = main_config.get("XYBot", {}).get("ignore-mode", "")
         self.whitelist = main_config.get("XYBot", {}).get("whitelist", [])
         self.blacklist = main_config.get("XYBot", {}).get("blacklist", [])
-
+        self.ignore_protect = main_config.get("XYBot", {}).get("ignore-protection", False)
     def update_profile(self, wxid: str, nickname: str, alias: str, phone: str):
         """更新机器人信息"""
         self.wxid = wxid
@@ -33,7 +33,7 @@ class XYBot:
 
     async def process_message(self, message: Dict[str, Any]):
         """处理接收到的消息"""
-        if protector.check(14400):
+        if not self.ignore_protect and protector.check(14400):
             logger.warning("登录新设备后4小时内请不要操作以避免风控")
             return
 

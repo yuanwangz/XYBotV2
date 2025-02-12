@@ -41,7 +41,7 @@ class Warthunder(PluginBase):
 
         player_name = content[len(command[0]) + 1:]
 
-        output = (f"\n-----XYBot-----\n"
+        output = (f"\n-----Bot-----\n"
                   f"正在查询玩家 {player_name} 的数据，请稍等...😄")
         a, b, c = await bot.send_at_message(message["FromWxid"], output, [message["SenderWxid"]])
 

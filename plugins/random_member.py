@@ -35,13 +35,13 @@ class RandomMember(PluginBase):
             return
 
         if not message["IsGroup"]:
-            await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n😠只能在群里使用！")
+            await bot.send_text_message(message["FromWxid"], "-----Bot-----\n😠只能在群里使用！")
             return
 
         memlist = await bot.get_chatroom_member_list(message["FromWxid"])
         random_members = random.sample(memlist, self.count)
 
-        output = "\n-----XYBot-----\n👋嘿嘿，我随机选到了这几位："
+        output = "\n-----Bot-----\n👋嘿嘿，我随机选到了这几位："
         for member in random_members:
             output += f"\n✨{member['NickName']}"
 

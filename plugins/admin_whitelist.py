@@ -44,7 +44,7 @@ class AdminWhitelist(PluginBase):
         sender_wxid = message["SenderWxid"]
 
         if sender_wxid not in self.admins:
-            await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌你配用这个指令吗？😡")
+            await bot.send_text_message(message["FromWxid"], "-----Bot-----\n❌你配用这个指令吗？😡")
             return
 
         if command[0] == "添加白名单":
@@ -57,14 +57,14 @@ class AdminWhitelist(PluginBase):
             elif "@" not in " ".join(command[1:]):
                 change_wxid = command[1]
             else:
-                await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌请不要手动@！")
+                await bot.send_text_message(message["FromWxid"], "-----Bot-----\n❌请不要手动@！")
                 return
 
             self.db.set_whitelist(change_wxid, True)
 
             nickname = await bot.get_nickname(change_wxid)
             await bot.send_text_message(message["FromWxid"],
-                                        f"-----XYBot-----\n成功添加 {nickname if nickname else ''} {change_wxid} 到白名单")
+                                        f"-----Bot-----\n成功添加 {nickname if nickname else ''} {change_wxid} 到白名单")
 
         elif command[0] == "移除白名单":
             if len(command) < 2:
@@ -76,19 +76,19 @@ class AdminWhitelist(PluginBase):
             elif "@" not in " ".join(command[1:]):
                 change_wxid = command[1]
             else:
-                await bot.send_text_message(message["FromWxid"], "-----XYBot-----\n❌请不要手动@！")
+                await bot.send_text_message(message["FromWxid"], "-----Bot-----\n❌请不要手动@！")
                 return
 
             self.db.set_whitelist(change_wxid, False)
 
             nickname = await bot.get_nickname(change_wxid)
             await bot.send_text_message(message["FromWxid"],
-                                        f"-----XYBot-----\n成功把 {nickname if nickname else ''} {change_wxid} 移出白名单！")
+                                        f"-----Bot-----\n成功把 {nickname if nickname else ''} {change_wxid} 移出白名单！")
 
         elif command[0] == "白名单列表":
             whitelist = self.db.get_whitelist_list()
             whitelist = "\n".join([f"{wxid} {await bot.get_nickname(wxid)}" for wxid in whitelist])
-            await bot.send_text_message(message["FromWxid"], f"-----XYBot-----\n白名单列表：\n{whitelist}")
+            await bot.send_text_message(message["FromWxid"], f"-----Bot-----\n白名单列表：\n{whitelist}")
 
         else:
             await bot.send_text_message(message["FromWxid"], self.command_format)

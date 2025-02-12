@@ -54,7 +54,7 @@ class Gomoku(PluginBase):
         elif command[0] in self.play_game_commands:
             await self.play_game(bot, message)
         elif command[0] in self.command:  # 当用户只输入"五子棋"时显示帮助
-            await bot.send_text_message(message["FromWxid"], f"-----XYBot-----\n{self.command_format}")
+            await bot.send_text_message(message["FromWxid"], f"-----Bot-----\n{self.command_format}")
 
     async def create_game(self, bot: WechatAPIClient, message: dict):
         """创建五子棋游戏"""
@@ -63,9 +63,9 @@ class Gomoku(PluginBase):
         sender = message["SenderWxid"]
 
         if not message["IsGroup"]:
-            error = '-----XYBot-----\n❌请在群聊中游玩五子棋'
+            error = '-----Bot-----\n❌请在群聊中游玩五子棋'
         elif sender in self.gomoku_players:
-            error = '-----XYBot-----\n❌您已经在一场游戏中了！'
+            error = '-----Bot-----\n❌您已经在一场游戏中了！'
 
         if error:
             await bot.send_text_message(message["FromWxid"], error)
@@ -73,12 +73,12 @@ class Gomoku(PluginBase):
 
         # 获取被邀请者
         if len(message["Ats"]) != 1:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌请@要邀请的玩家！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌请@要邀请的玩家！')
             return
 
         invitee_wxid = message["Ats"][0]
         if invitee_wxid in self.gomoku_players:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌对方已经在一场游戏中！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌对方已经在一场游戏中！')
             return
 
         # 创建游戏
@@ -89,7 +89,7 @@ class Gomoku(PluginBase):
         inviter_nick = await bot.get_nickname(sender)
 
         # 发送邀请消息
-        out_message = (f"\n-----XYBot-----\n"
+        out_message = (f"\n-----Bot-----\n"
                        f"🎉您收到了来自 {inviter_nick} 的五子棋比赛邀请！\n"
                        f"\n"
                        f"⚙️请在{self.timeout}秒内发送:\n"
@@ -116,11 +116,11 @@ class Gomoku(PluginBase):
         sender = message["SenderWxid"]
 
         if not message["IsGroup"]:
-            error = '-----XYBot-----\n❌请在群聊中游玩五子棋'
+            error = '-----Bot-----\n❌请在群聊中游玩五子棋'
 
         command = message["Content"].strip().split()
         if len(command) != 2:
-            error = f'-----XYBot-----\n❌指令格式错误\n\n{self.command_format}'
+            error = f'-----Bot-----\n❌指令格式错误\n\n{self.command_format}'
 
         if error:
             await bot.send_text_message(message["FromWxid"], error)
@@ -129,21 +129,21 @@ class Gomoku(PluginBase):
         game_id = command[1]
 
         if game_id not in self.gomoku_games:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌该游戏不存在！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌该游戏不存在！')
             return
 
         game = self.gomoku_games[game_id]
 
         if game['white'] != sender:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌您没有被邀请参加该游戏！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌您没有被邀请参加该游戏！')
             return
 
         if game['status'] != 'inviting':
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌该游戏已经开始或结束！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌该游戏已经开始或结束！')
             return
 
         if room_id != game['chatroom']:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌请在原群聊中接受邀请！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌请在原群聊中接受邀请！')
             return
 
         # 取消超时任务
@@ -159,7 +159,7 @@ class Gomoku(PluginBase):
         white_nick = await bot.get_nickname(game['white'])
 
         start_msg = (
-            f"-----XYBot-----\n"
+            f"-----Bot-----\n"
             f"🎉五子棋游戏 {game_id} 开始！\n"
             f"\n"
             f"⚫️黑方：{black_nick}\n"
@@ -190,46 +190,46 @@ class Gomoku(PluginBase):
         sender = message["SenderWxid"]
 
         if not message["IsGroup"]:
-            error = '-----XYBot-----\n❌请在群聊中游玩五子棋'
+            error = '-----Bot-----\n❌请在群聊中游玩五子棋'
 
         command = message["Content"].strip().split()
         if len(command) != 2:
-            error = f'-----XYBot-----\n❌指令格式错误\n\n{self.command_format}'
+            error = f'-----Bot-----\n❌指令格式错误\n\n{self.command_format}'
 
         if error:
             await bot.send_text_message(message["FromWxid"], error)
             return
 
         if sender not in self.gomoku_players:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌您不在任何游戏中！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌您不在任何游戏中！')
             return
 
         game_id = self.gomoku_players[sender]
         game = self.gomoku_games[game_id]
 
         if game['status'] != 'playing':
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌游戏已经结束！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌游戏已经结束！')
             return
 
         if sender != game['turn']:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌还没到您的回合！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌还没到您的回合！')
             return
 
         # 解析坐标
         coord = command[1].upper()
         if not (len(coord) >= 2 and coord[0] in 'ABCDEFGHIJKLMNOPQ' and coord[1:].isdigit()):
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌无效的坐标格式！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌无效的坐标格式！')
             return
 
         x = ord(coord[0]) - ord('A')
         y = 16 - int(coord[1:])
 
         if not (0 <= x <= 16 and 0 <= y <= 16):
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌坐标超出范围！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌坐标超出范围！')
             return
 
         if game['board'][y][x] != 0:
-            await bot.send_text_message(room_id, '-----XYBot-----\n❌该位置已有棋子！')
+            await bot.send_text_message(room_id, '-----Bot-----\n❌该位置已有棋子！')
             return
 
         # 取消超时任务
@@ -246,13 +246,13 @@ class Gomoku(PluginBase):
         winner = self._check_winner(game_id)
         if winner:
             if winner == 'draw':
-                await bot.send_text_message(room_id, f'-----XYBot-----\n🎉五子棋游戏 {game_id} 结束！\n\n平局！⚖️')
+                await bot.send_text_message(room_id, f'-----Bot-----\n🎉五子棋游戏 {game_id} 结束！\n\n平局！⚖️')
             else:
                 winner_wxid = game['black'] if winner == 'black' else game['white']
                 winner_nick = await bot.get_nickname(winner_wxid)
                 await bot.send_text_message(
                     room_id,
-                    f'-----XYBot-----\n🎉五子棋游戏 {game_id} 结束！\n\n'
+                    f'-----Bot-----\n🎉五子棋游戏 {game_id} 结束！\n\n'
                     f'{"⚫️黑方" if winner == "black" else "⚪️白方"}：{winner_nick} 获胜！🏆'
                 )
 
@@ -272,7 +272,7 @@ class Gomoku(PluginBase):
         next_color = '⚫️' if game['turn'] == game['black'] else '⚪️'
 
         turn_msg = (
-            f"-----XYBot-----\n"
+            f"-----Bot-----\n"
             f"{current_color}{current_nick} 把棋子落在了 {coord}！\n"
             f"轮到 {next_color}{next_nick} 下子了！\n"
             f"\n"
@@ -378,7 +378,7 @@ class Gomoku(PluginBase):
 
             await bot.send_at_message(
                 room_id,
-                f'-----XYBot-----\n❌五子棋游戏 {game_id} 邀请超时！',
+                f'-----Bot-----\n❌五子棋游戏 {game_id} 邀请超时！',
                 [inviter]
             )
 
@@ -403,7 +403,7 @@ class Gomoku(PluginBase):
 
             await bot.send_text_message(
                 room_id,
-                f'-----XYBot-----\n'
+                f'-----Bot-----\n'
                 f'{loser_nick} 落子超时！\n'
                 f'🏆 {winner_nick} 获胜！'
             )

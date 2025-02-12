@@ -73,7 +73,7 @@ class SignIn(PluginBase):
         last_sign = last_sign.replace(hour=0, minute=0, second=0, microsecond=0)
 
         if last_sign and (now - last_sign).days < 1:
-            output = "\n-----XYBot-----\n你今天已经签到过了！😠"
+            output = "\n-----Bot-----\n你今天已经签到过了！😠"
             await bot.send_at_message(message["FromWxid"], output, [sign_wxid])
             return
 
@@ -99,7 +99,7 @@ class SignIn(PluginBase):
         today_rank = self.today_signin_count
 
         output = ("\n"
-                  f"-----XYBot-----\n"
+                  f"-----Bot-----\n"
                   f"签到成功！你领到了 {signin_points} 个积分！✅\n"
                   f"你是今天第 {today_rank} 个签到的！🎉\n")
 

@@ -36,7 +36,7 @@ class Music(PluginBase):
             return
 
         if len(command) == 1:
-            await bot.send_at_message(message["FromWxid"], f"-----XYBot-----\n❌命令格式错误！{self.command_format}",
+            await bot.send_at_message(message["FromWxid"], f"-----Bot-----\n❌命令格式错误！{self.command_format}",
                                       [message["SenderWxid"]])
             return
 
@@ -48,7 +48,7 @@ class Music(PluginBase):
                 data = await resp.json()
 
         if data["code"] != 200:
-            await bot.send_at_message(message["FromWxid"], f"-----XYBot-----\n❌点歌失败！\n{data}",
+            await bot.send_at_message(message["FromWxid"], f"-----Bot-----\n❌点歌失败！\n{data}",
                                       [message["SenderWxid"]])
             return
         title = data["title"]

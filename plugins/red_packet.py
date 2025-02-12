@@ -58,7 +58,7 @@ class RedPacket(PluginBase):
         elif len(command) == 2 and command[0] == "抢红包":
             await self.grab_red_packet(bot, message, command)
         elif command[0] in ["发红包", "抢红包"]:
-            await bot.send_text_message(message["FromWxid"], f"-----XYBot-----\n{self.command_format}")
+            await bot.send_text_message(message["FromWxid"], f"-----Bot-----\n{self.command_format}")
 
     async def send_red_packet(self, bot: WechatAPIClient, message: dict, command: list):
         sender_wxid = message["SenderWxid"]
@@ -66,17 +66,17 @@ class RedPacket(PluginBase):
 
         error = ""
         if not message["IsGroup"]:
-            error = "\n-----XYBot-----\n红包只能在群里发！😔"
+            error = "\n-----Bot-----\n红包只能在群里发！😔"
         elif not command[1].isdigit() or not command[2].isdigit():
-            error = f"\n-----XYBot-----\n指令格式错误！\n{self.command_format}"
+            error = f"\n-----Bot-----\n指令格式错误！\n{self.command_format}"
         elif int(command[1]) > self.max_point or int(command[1]) < self.min_point:
-            error = f"\n-----XYBot-----\n⚠️积分无效！最大{self.max_point}，最小{self.min_point}！"
+            error = f"\n-----Bot-----\n⚠️积分无效！最大{self.max_point}，最小{self.min_point}！"
         elif int(command[2]) > self.max_packet:
-            error = f"\n-----XYBot-----\n⚠️红包数量无效！最大{self.max_packet}个红包！"
+            error = f"\n-----Bot-----\n⚠️红包数量无效！最大{self.max_packet}个红包！"
         elif int(command[2]) > int(command[1]):
-            error = "\n-----XYBot-----\n🔢红包数量不能大于红包积分！"
+            error = "\n-----Bot-----\n🔢红包数量不能大于红包积分！"
         elif self.db.get_points(sender_wxid) < int(command[1]):
-            error = "\n-----XYBot-----\n😭你的积分不够！"
+            error = "\n-----Bot-----\n😭你的积分不够！"
 
         if error:
             await bot.send_at_message(from_wxid, error, [sender_wxid])
@@ -152,7 +152,7 @@ class RedPacket(PluginBase):
 
         # 发送文字消息和图片
         text_content = (
-            f"-----XYBot-----\n"
+            f"-----Bot-----\n"
             f"✨{sender_nick} 发送了一个红包！🧧\n"
             f"🥳快输入指令来抢红包！🎉\n"
             f"🧧指令：抢红包 口令"
@@ -168,15 +168,15 @@ class RedPacket(PluginBase):
 
         error = ""
         if captcha not in self.red_packets:
-            error = "\n-----XYBot-----\n❌红包口令错误！"
+            error = "\n-----Bot-----\n❌红包口令错误！"
         elif not self.red_packets[captcha]["list"]:
-            error = "\n-----XYBot-----\n😭红包已被抢完！"
+            error = "\n-----Bot-----\n😭红包已被抢完！"
         elif not message["IsGroup"]:
-            error = "\n-----XYBot-----\n红包只能在群里抢！😔"
+            error = "\n-----Bot-----\n红包只能在群里抢！😔"
         elif grabber_wxid in self.red_packets[captcha]["grabbed"]:
-            error = "\n-----XYBot-----\n你已经抢过这个红包了！😡"
+            error = "\n-----Bot-----\n你已经抢过这个红包了！😡"
         elif self.red_packets[captcha]["sender"] == grabber_wxid:
-            error = "\n-----XYBot-----\n😠不能抢自己的红包！"
+            error = "\n-----Bot-----\n😠不能抢自己的红包！"
 
         if error:
             await bot.send_at_message(from_wxid, error, [grabber_wxid])
@@ -189,14 +189,14 @@ class RedPacket(PluginBase):
             grabber_nick = await bot.get_nickname(grabber_wxid)
             self.db.add_points(grabber_wxid, grabbed_points)
 
-            out_message = f"-----XYBot-----\n🧧恭喜 {grabber_nick} 抢到了 {grabbed_points} 点积分！👏"
+            out_message = f"-----Bot-----\n🧧恭喜 {grabber_nick} 抢到了 {grabbed_points} 点积分！👏"
             await bot.send_text_message(from_wxid, out_message)
 
             if not self.red_packets[captcha]["list"]:
                 self.red_packets.pop(captcha)
 
         except IndexError:
-            await bot.send_at_message(from_wxid, "\n-----XYBot-----\n红包已被抢完！😭", [grabber_wxid])
+            await bot.send_at_message(from_wxid, "\n-----Bot-----\n红包已被抢完！😭", [grabber_wxid])
 
     @schedule('interval', seconds=300)
     async def check_expired_packets(self, bot: WechatAPIClient):
@@ -213,7 +213,7 @@ class RedPacket(PluginBase):
                 self.red_packets.pop(captcha)
 
                 out_message = (
-                    f"-----XYBot-----\n"
+                    f"-----Bot-----\n"
                     f"🧧发现有红包 {captcha} 超时！已归还剩余 {points_left} 积分给 {sender_nick}"
                 )
                 await bot.send_text_message(chatroom, out_message)
