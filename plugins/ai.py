@@ -353,6 +353,7 @@ class Ai(PluginBase):
         try:
             # 上下文
             thread_id = self.db.get_llm_thread_id(sender_wxid, self.model_name)
+            history_flag = False
             if not thread_id:
                 thread_id = str(uuid4())
                 self.db.save_llm_thread_id(sender_wxid, thread_id, self.model_name)
@@ -364,10 +365,9 @@ class Ai(PluginBase):
 
             # 消息类型
             if message["MsgType"] == 1 and self.text_input:  # 文本输入
-                input_message = [
-                    SystemMessage(content=self.prompt),
-                    HumanMessage(content=user_input)
-                ]
+                input_message = (
+                    [SystemMessage(content=self.prompt)] if not history_flag else []
+                ) + [HumanMessage(content=user_input)]
 
             elif message["MsgType"] == 3 and self.image_input:  # 图片输入
                 image_base64 = user_input
@@ -381,9 +381,9 @@ class Ai(PluginBase):
                         [sender_wxid]
                     )
                     return None
-                input_message = [
-                    SystemMessage(content=self.prompt),
-                    HumanMessage(content=[
+                input_message = (
+                    [SystemMessage(content=self.prompt)] if not history_flag else []
+                ) + [HumanMessage(content=[
                         {"type": "image_url", "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}},
                     ])
                 ]
@@ -391,17 +391,17 @@ class Ai(PluginBase):
             elif message["MsgType"] == 34 and self.voice_input != "None":  # 语音输入
                 if self.voice_input == "Native":
                     wav_base64 = bot.byte_to_base64(user_input)
-                    input_message = [
-                        SystemMessage(content=self.prompt),
-                        HumanMessage(content=[
+                    input_message = (
+                    [SystemMessage(content=self.prompt)] if not history_flag else []
+                ) + [HumanMessage(content=[
                             {"type": "input_audio", "input_audio": {"data": wav_base64, "format": "wav"}},
                         ])
                     ]
                 else:
                     text_input = await self.get_text_from_voice(user_input)
-                    input_message = [
-                        SystemMessage(content=self.prompt),
-                        HumanMessage(content=text_input)
+                    input_message = (
+                    [SystemMessage(content=self.prompt)] if not history_flag else []
+                ) + [HumanMessage(content=text_input)
                     ]
 
             else:
