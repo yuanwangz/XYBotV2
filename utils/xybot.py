@@ -111,15 +111,26 @@ class XYBot:
             ats = ats.strip(",").split(",")
         else:  # 修复
             ats = []
-        message["Ats"] = ats if ats[0] != "" else []
+        message["Ats"] = ats if ats and ats[0] != "" else []
 
         if self.wxid in ats:
-            logger.info("收到被@消息: {}", message)
+            logger.info("收到被@消息: 消息ID:{} 来自:{} 发送人:{} @:{} 内容:{}",
+                        message["MsgId"],
+                        message["FromWxid"],
+                        message["SenderWxid"],
+                        message["Ats"],
+                        message["Content"])
+
             if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
                 await EventManager.emit("at_message", self.bot, message)
             return
 
-        logger.info("收到文本消息: {}", message)
+        logger.info("收到文本消息: 消息ID:{} 来自:{} 发送人:{} @:{} 内容:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Ats"],
+                    message["Content"])
 
         if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
             await EventManager.emit("text_message", self.bot, message)
@@ -144,7 +155,11 @@ class XYBot:
                 message["FromWxid"] = message["ToWxid"]
             message["IsGroup"] = False
 
-        logger.info("收到图片消息: {}", message)
+        logger.info("收到图片消息: 消息ID:{} 来自:{} 发送人:{} XML:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Content"])
 
         # 解析图片消息
         aeskey, cdnmidimgurl = None, None
@@ -185,7 +200,11 @@ class XYBot:
                 message["FromWxid"] = message["ToWxid"]
             message["IsGroup"] = False
 
-        logger.info("收到语音消息: {}", message)
+        logger.info("收到语音消息: 消息ID:{} 来自:{} 发送人:{} XML:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Content"])
 
         if message["IsGroup"]:
             # 解析语音消息
@@ -383,6 +402,13 @@ class XYBot:
         message["Content"] = text
         message["Quote"] = quote_messsage
 
+        logger.info("收到引用消息: 消息ID:{} 来自:{} 发送人:{}  内容:{} 引用:{}",
+                    message["Msgid"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Content"],
+                    message["Quote"])
+
         if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
             await EventManager.emit("quote_message", self.bot, message)
 
@@ -405,7 +431,11 @@ class XYBot:
                 message["FromWxid"] = message["ToWxid"]
             message["IsGroup"] = False
 
-        logger.info("收到视频消息: {}", message)
+        logger.info("收到视频消息: 消息ID:{} 来自:{} 发送人:{} XML:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Content"])
 
         message["Video"] = await self.bot.download_video(message["MsgId"])
 
@@ -426,7 +456,11 @@ class XYBot:
         message["Filename"] = filename
         message["FileExtend"] = file_extend
 
-        logger.info("收到文件消息: {}", message)
+        logger.info("收到文件消息: 消息ID:{} 来自:{} 发送人:{} XML:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Content"])
 
         message["File"] = await self.bot.download_attach(attach_id)
         logger.debug("文件消息: {}", message)
@@ -476,14 +510,20 @@ class XYBot:
             patted = pat.find("pattedusername").text
             pat_suffix = pat.find("patsuffix").text
         except Exception as e:
-            logger.error(f"解析pat消息失败: {e}")
+            logger.error(f"解析拍一拍消息失败: {e}")
             return
 
         message["Patter"] = patter
         message["Patted"] = patted
         message["PatSuffix"] = pat_suffix
 
-        logger.info("收到拍一拍消息: {}", message)
+        logger.info("收到拍一拍消息: 消息ID:{} 来自:{} 发送人:{} 拍者:{} 被拍:{} 后缀:{}",
+                    message["MsgId"],
+                    message["FromWxid"],
+                    message["SenderWxid"],
+                    message["Patter"],
+                    message["Patted"],
+                    message["PatSuffix"])
 
         if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
             await EventManager.emit("pat_message", self.bot, message)
