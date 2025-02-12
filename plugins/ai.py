@@ -353,9 +353,10 @@ class Ai(PluginBase):
         try:
             # 上下文
             thread_id = self.db.get_llm_thread_id(sender_wxid, self.model_name)
-            history_flag = False
+            history_flag = True
             if not thread_id:
                 thread_id = str(uuid4())
+                history_flag = False
                 self.db.save_llm_thread_id(sender_wxid, thread_id, self.model_name)
             configurable = {
                 "configurable": {
