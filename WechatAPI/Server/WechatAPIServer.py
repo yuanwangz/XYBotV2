@@ -89,7 +89,7 @@ def is_running_in_docker():
         with open('/proc/1/cgroup', 'r') as f:
             content = f.read()
             is_docker = 'docker' in content or 'kubepods' in content
-            logger.debug("Docker 检测结果: {}, cgroup 内容: {}", is_docker, content)
+            logger.debug("Docker 检测结果: {}", is_docker)
             return is_docker
     except:
         return False
