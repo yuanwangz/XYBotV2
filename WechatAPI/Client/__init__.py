@@ -58,7 +58,7 @@ class WechatAPIClient(LoginMixin, MessageMixin, FriendMixin, ChatroomMixin, User
         # 如果有图片链接，保存供后续使用
         if img_matches:
             self.last_img_url = img_matches[0]
+            self.send_image_message(wxid, image_base64=self.last_img_url)
         
-        self.send_image_message(wxid, image_base64=self.last_img_url)
 
         return await self.send_text_message(wxid, output, at)
