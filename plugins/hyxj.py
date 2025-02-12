@@ -37,7 +37,8 @@ class HYXJPlugin(PluginBase):
 
         if not len(command) or command[0] not in self.command:
             return
-        
+        if len(command) < 2 or not command[1]:
+            return
         async with aiohttp.ClientSession() as session:
             json_param = {"text": command[1], "apiKey": self.api_key}
             response = await session.post(f'https://hyxj-worker.yuanwan2021.workers.dev/hanyuxinjie', json=json_param)
