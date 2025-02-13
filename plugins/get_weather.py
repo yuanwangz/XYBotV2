@@ -12,6 +12,9 @@ class GetWeather(PluginBase):
     description = "获取天气"
     author = "HenryXiaoYang"
     version = "1.0.0"
+    
+    priority = 1
+    mutex_group = "text_response"
 
     def __init__(self):
         super().__init__()
@@ -28,17 +31,17 @@ class GetWeather(PluginBase):
     @on_text_message
     async def handle_text(self, bot: WechatAPIClient, message: dict):
         if not self.enable:
-            return
+            return False
 
         if "天气" not in message["Content"]:
-            return
+            return False
 
         content = str(message["Content"]).replace(" ", "")
         command = list(jieba.cut(content))
 
         if len(command) == 1:
             await bot.send_at_message(message["FromWxid"], "\n" + self.command_format, [message["SenderWxid"]])
-            return
+            return True  # 消息已处理
 
         command.remove("天气")
         request_loc = "".join(command)
@@ -51,11 +54,11 @@ class GetWeather(PluginBase):
 
         if geoapi_json['code'] == '404':
             await bot.send_at_message(message["FromWxid"], "\n⚠️查无此地！", [message["SenderWxid"]])
-            return
+            return True  # 消息已处理
 
         elif geoapi_json['code'] != '200':
             await bot.send_at_message(message["FromWxid"], f"\n⚠️请求失败\n{geoapi_json}", [message["SenderWxid"]])
-            return
+            return True  # 消息已处理
 
         country = geoapi_json["location"][0]["country"]
         adm1 = geoapi_json["location"][0]["adm1"]
@@ -78,6 +81,7 @@ class GetWeather(PluginBase):
 
         out_message = self.compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json)
         await bot.send_at_message(message["FromWxid"], "\n" + out_message, [message["SenderWxid"]])
+        return True  # 消息已处理
 
     @staticmethod
     def compose_weather_message(country, adm1, adm2, now_weather_api_json, weather_forecast_api_json):
@@ -93,7 +97,7 @@ class GetWeather(PluginBase):
         now_uvindex = weather_forecast_api_json['daily'][0]['uvIndex']
 
         message = (
-            f"----- XYBot -----\n"
+            f"----- Bot -----\n"
             f"{country}{adm1}{adm2} 实时天气☁️\n"
             f"⏰更新时间：{update_time}\n\n"
             f"🌡️当前温度：{now_temperature}℃\n"

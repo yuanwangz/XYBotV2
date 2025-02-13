@@ -52,7 +52,7 @@ class GoodMorning(PluginBase):
                 history_today = str(resp.get("content")[0])
 
         weekend = ["一", "二", "三", "四", "五", "六", "日"]
-        message = ("----- XYBot -----\n"
+        message = ("----- Bot -----\n"
                    f"[Sun]早上好！今天是 {datetime.now().strftime('%Y年%m月%d号')}，星期{weekend[datetime.now().weekday()]}。\n"
                    "\n"
                    "📖历史上的今天：\n"

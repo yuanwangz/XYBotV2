@@ -12,6 +12,11 @@ class PluginBase(ABC):
     description: str = "暂无描述"
     author: str = "未知"
     version: str = "1.0.0"
+    
+    # 插件优先级，数字越小优先级越高
+    priority: int = 10
+    # 互斥组，同一组的插件不会并行执行
+    mutex_group: str = None
 
     def __init__(self):
         self.enabled = False

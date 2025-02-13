@@ -39,9 +39,7 @@ class BotStatus(PluginBase):
         if not len(command) or command[0] not in self.command:
             return
 
-        out_message = (f"{self.status_message}\n"
-                       f"当前版本: {self.version}\n"
-                       "项目地址：https://github.com/HenryXiaoYang/XYBotV2\n")
+        out_message = (f"{self.status_message}\n")
         await bot.send_text_message(message.get("FromWxid"), out_message)
 
     @on_at_message

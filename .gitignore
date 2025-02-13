@@ -220,3 +220,5 @@ xybot.db
 resource/ai.db
 resource/ai.db-shm
 resource/ai.db-wal
+main_config temp.toml
+plugins/all_in_one_config temp.toml

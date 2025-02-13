@@ -32,6 +32,9 @@ class Ai(PluginBase):
     description = "AI插件"
     author = "HenryXiaoYang"
     version = "1.0.0"
+    
+    priority: int = 10
+    mutex_group: str = "text_response"
 
     def __init__(self):
         super().__init__()
