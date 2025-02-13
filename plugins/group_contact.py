@@ -52,3 +52,4 @@ class GroupContactPlugin(PluginBase):
                                     url=f"https://easychuan.cn/r/{resp['fetch_code']}?t=t",
                                     title="群成员列表",
                                     description=f"过期时间：{resp['date_expire']}、点击查看群成员列表", )
+        return True
