@@ -4,7 +4,11 @@ services:
     container_name: XYBotV2
     restart: unless-stopped
     volumes:
-      - xybotv2:/app
+      - ./resource:/app/resource
+      - ./main_config.toml:/app/main_config.toml
+      - ./all_in_one_config.toml:/app/plugins/all_in_one_config.toml
+      - ./xybot.db:/app/xybot.db
+      - ./logs:/app/logs
     networks:
       - xybotv2-network
     depends_on:
@@ -32,5 +36,3 @@ networks:
 volumes:
   dragonfly-data:
     name: dragonfly-data
-  xybotv2:
-    name: xybotv2
