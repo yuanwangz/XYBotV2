@@ -11,6 +11,9 @@ class GroupContactPlugin(PluginBase):
     description = "获取群聊成员插件"
     author = "Assistant"
     version = "1.0.0"
+    
+    priority: int = 2
+    mutex_group: str = "text_response"
 
     def __init__(self):
         super().__init__()
