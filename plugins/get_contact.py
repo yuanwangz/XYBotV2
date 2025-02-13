@@ -114,7 +114,7 @@ class GetContact(PluginBase):
 
         await bot.send_link_message(message["FromWxid"],
                                     url=f"https://easychuan.cn/r/{resp['fetch_code']}?t=t",
-                                    title="XYBot登录账号通讯录",
+                                    title="Bot登录账号通讯录",
                                     description=f"过期时间：{resp['date_expire']}、耗时：{done_time - start_time}、点击查看详细通讯录信息", )
 
         await bot.revoke_message(message["FromWxid"], a, b, c)

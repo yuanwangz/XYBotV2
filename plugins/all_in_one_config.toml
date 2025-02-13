@@ -347,3 +347,6 @@ kpi-url = "" #kpi填写地址
 enable = true
 command = ["汉语新解", "/汉语新解"]
 api-key = "t-12342234"
+
+[GroupContact]
+enable = true
