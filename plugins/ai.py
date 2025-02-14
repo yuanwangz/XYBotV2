@@ -332,6 +332,22 @@ class Ai(PluginBase):
 
         if await self.check_point(bot, message):
             await self.get_ai_response(bot, message)
+    
+    @on_quote_message
+    async def handle_quote(self, bot: WechatAPIClient, message: dict):
+        if not self.enable:
+            return
+        
+        if not self.text_input:
+            return
+        
+        if not message["Quote"]:
+            return
+        
+        logger.info("收到了引用消息: {}", message["Quote"])
+        
+        if await self.check_point(bot, message):
+            await self.get_ai_response(bot, message)
 
     @schedule('cron', hour=5)
     async def reset_chat_history(self):
