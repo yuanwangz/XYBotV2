@@ -24,6 +24,7 @@ class News(PluginBase):
 
         self.enable = config["enable"]
         self.command = config["command"]
+        self.task_whitelist = config["task-whitelist"]
 
     @on_text_message
     async def handle_text(self, bot: WechatAPIClient, message: dict):
@@ -65,15 +66,16 @@ class News(PluginBase):
         if not self.enable:
             return
 
-        id_list = []
-        wx_seq, chatroom_seq = 0, 0
-        while True:
-            contact_list = await bot.get_contract_list(wx_seq, chatroom_seq)
-            id_list.extend(contact_list["ContactUsernameList"])
-            wx_seq = contact_list["CurrentWxcontactSeq"]
-            chatroom_seq = contact_list["CurrentChatRoomContactSeq"]
-            if contact_list["CountinueFlag"] != 1:
-                break
+        id_list = self.task_whitelist
+        # id_list = []
+        # wx_seq, chatroom_seq = 0, 0
+        # while True:
+        #     contact_list = await bot.get_contract_list(wx_seq, chatroom_seq)
+        #     id_list.extend(contact_list["ContactUsernameList"])
+        #     wx_seq = contact_list["CurrentWxcontactSeq"]
+        #     chatroom_seq = contact_list["CurrentChatRoomContactSeq"]
+        #     if contact_list["CountinueFlag"] != 1:
+        #         break
 
         chatrooms = []
         for id in id_list:
@@ -95,15 +97,16 @@ class News(PluginBase):
         if not self.enable:
             return
 
-        id_list = []
-        wx_seq, chatroom_seq = 0, 0
-        while True:
-            contact_list = await bot.get_contract_list(wx_seq, chatroom_seq)
-            id_list.extend(contact_list["ContactUsernameList"])
-            wx_seq = contact_list["CurrentWxcontactSeq"]
-            chatroom_seq = contact_list["CurrentChatRoomContactSeq"]
-            if contact_list["CountinueFlag"] != 1:
-                break
+        id_list = self.task_whitelist
+        # id_list = []
+        # wx_seq, chatroom_seq = 0, 0
+        # while True:
+        #     contact_list = await bot.get_contract_list(wx_seq, chatroom_seq)
+        #     id_list.extend(contact_list["ContactUsernameList"])
+        #     wx_seq = contact_list["CurrentWxcontactSeq"]
+        #     chatroom_seq = contact_list["CurrentChatRoomContactSeq"]
+        #     if contact_list["CountinueFlag"] != 1:
+        #         break
 
         chatrooms = []
         for id in id_list:

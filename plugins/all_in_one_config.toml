@@ -186,6 +186,7 @@ max-count = 30
 [News]
 enable = true
 command = ["新闻", "新闻速递", "新闻资讯", "新闻头条", "新闻列表", "随机新闻", "获取新闻", "获取随机新闻", "头条", "头条新闻", "今日头条", "今日新闻"]
+task-whitelist = []
 
 [PointTrade]
 enable = true
