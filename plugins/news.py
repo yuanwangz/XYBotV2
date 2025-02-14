@@ -62,6 +62,9 @@ class News(PluginBase):
 
     @schedule('cron', hour=12)
     async def noon_news(self, bot: WechatAPIClient):
+        if not self.enable:
+            return
+
         id_list = []
         wx_seq, chatroom_seq = 0, 0
         while True:
@@ -89,6 +92,9 @@ class News(PluginBase):
 
     @schedule('cron', hour=18)
     async def night_news(self, bot: WechatAPIClient):
+        if not self.enable:
+            return
+
         id_list = []
         wx_seq, chatroom_seq = 0, 0
         while True:
