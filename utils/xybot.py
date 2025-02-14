@@ -49,7 +49,6 @@ class XYBot:
             # 由于是自己发送的消息，所以对于自己来说，From和To是反的
             message["FromWxid"], message["ToWxid"] = message["ToWxid"], message["FromWxid"]
 
-
         # 根据消息类型触发不同的事件
         if msg_type == 1:  # 文本消息
             await self.process_text_message(message)
@@ -231,10 +230,15 @@ class XYBot:
         try:
             root = ET.fromstring(message["Content"])
             type = int(root.find("appmsg").find("type").text)
+            root = ET.fromstring(message["MsgSource"])
+            ats = root.find("atuserlist").text if root.find("atuserlist") is not None else ""
         except Exception as e:
             logger.error(f"解析xml消息失败: {e}")
             return
-
+        ats = ats.strip(",").split(",")
+        message["Ats"] = ats if ats[0] != "" else []
+        if self.wxid in ats:
+            message["is_at"] = True
         if type == 57:
             await self.process_quote_message(message)
         elif type == 6:

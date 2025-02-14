@@ -343,6 +343,11 @@ class Ai(PluginBase):
         
         if not message["Quote"]:
             return
+        if message["IsGroup"] and not message.get("is_at", False):
+            return
+        await self.async_init()
+        
+        message["Content"] = str(message["Content"]).replace(f"@{bot.nickname}\u2005", "").strip()
         
         if await self.check_point(bot, message):
             await self.get_ai_response(bot, message)
@@ -371,7 +376,7 @@ class Ai(PluginBase):
         if is_quote:
             quote_input = is_quote["Content"]
             if is_quote["MsgType"] == 1:
-                user_input = f"[引用信息：{quote_input}]\n{user_input}"
+                user_input = f"[引用信息：{quote_input}];{user_input}"
             elif is_quote["MsgType"] == 3:
                 image_format = self.get_img_format(quote_input)
                 user_input = [
@@ -387,12 +392,12 @@ class Ai(PluginBase):
 
         try:
             # 上下文
-            thread_id = self.db.get_llm_thread_id(sender_wxid, self.model_name)
+            thread_id = self.db.get_llm_thread_id(sender_wxid if not is_group else from_wxid, self.model_name)
             history_flag = True
             if not thread_id:
                 thread_id = str(uuid4())
                 history_flag = False
-                self.db.save_llm_thread_id(sender_wxid, thread_id, self.model_name)
+                self.db.save_llm_thread_id(sender_wxid if not is_group else from_wxid, thread_id, self.model_name)
             configurable = {
                 "configurable": {
                     "thread_id": thread_id,
@@ -447,7 +452,6 @@ class Ai(PluginBase):
             logger.debug("请求AI的API, thread id: {}", thread_id)
             output = await self.ai.ainvoke({"messages": input_message}, configurable)
             last_message = output["messages"][-1]
-
             # 什么类型输入，什么类型输出
             if message["MsgType"] == 1 and self.text_output:  # 文本输出
                 if self.voice_output == "Native":
