@@ -255,7 +255,6 @@ class XYBot:
             refermsg = appmsg.find("refermsg")
 
             quote_messsage["MsgType"] = int(refermsg.find("type").text)
-
             if quote_messsage["MsgType"] == 1:  # 文本消息
                 quote_messsage["NewMsgId"] = refermsg.find("svrid").text
                 quote_messsage["ToWxid"] = refermsg.find("fromusr").text
@@ -264,6 +263,37 @@ class XYBot:
                 quote_messsage["MsgSource"] = refermsg.find("msgsource").text
                 quote_messsage["Content"] = refermsg.find("content").text
                 quote_messsage["Createtime"] = refermsg.find("createtime").text
+            
+            elif quote_messsage["MsgType"] == 3:  # 引用图片
+                # 解析图片消息
+                aeskey, cdnmidimgurl = None, None
+                try:
+                    root = ET.fromstring(refermsg.find("content").text)
+                    img_element = root.find('img')
+                    if img_element is not None:
+                        aeskey = img_element.get('aeskey')
+                        cdnmidimgurl = img_element.get('cdnmidimgurl')
+                except Exception as e:
+                    logger.error("解析图片消息失败: {}", e)
+                    return
+
+                # 下载图片
+                if aeskey and cdnmidimgurl:
+                    quote_messsage["Content"] = await self.bot.download_image(aeskey, cdnmidimgurl)
+            
+            elif quote_messsage["MsgType"] == 6:   #引用文件
+                try:
+                    root = ET.fromstring(refermsg.find("content").text)
+                    filename = root.find("appmsg").find("title").text
+                    attach_id = root.find("appmsg").find("appattach").find("attachid").text
+                    file_extend = root.find("appmsg").find("appattach").find("fileext").text
+                except Exception as error:
+                    logger.error(f"解析文件消息失败: {error}")
+                    return
+
+                quote_messsage["Filename"] = filename
+                quote_messsage["FileExtend"] = file_extend
+                quote_messsage["File"] = await self.bot.download_attach(attach_id)
 
             elif quote_messsage["MsgType"] == 49:  # 引用消息
                 quote_messsage["NewMsgId"] = refermsg.find("svrid").text
@@ -330,6 +360,11 @@ class XYBot:
                     quote_appmsg.find("statextstr"), ET.Element) else ""
                 quote_messsage["directshare"] = int(quote_appmsg.find("directshare").text) if isinstance(
                     quote_appmsg.find("directshare"), ET.Element) else 0
+                if quote_messsage["XmlType"] == 6:  # 引用文件
+                    quote_messsage["Filename"] = quote_messsage["Content"]
+                    quote_messsage["FileExtend"] = quote_messsage["appattach"]["fileext"]
+                    quote_messsage["Content"] = await self.bot.download_attach(quote_messsage["appattach"]["attachid"])
+                    quote_messsage["MsgType"] = 6
 
         except Exception as e:
             logger.error(f"解析引用消息失败: {e}")
@@ -384,7 +419,7 @@ class XYBot:
         logger.info("收到文件消息: {}", message)
 
         message["File"] = await self.bot.download_attach(attach_id)
-
+        logger.debug("文件消息: {}", message)
         if self.ignore_check(message["FromWxid"], message["SenderWxid"]):
             await EventManager.emit("file_message", self.bot, message)
 

@@ -344,8 +344,6 @@ class Ai(PluginBase):
         if not message["Quote"]:
             return
         
-        logger.info("收到了引用消息: {}", message["Quote"])
-        
         if await self.check_point(bot, message):
             await self.get_ai_response(bot, message)
 
@@ -364,10 +362,28 @@ class Ai(PluginBase):
         sender_wxid = message["SenderWxid"]
         user_input = message["Content"]
         is_group = message["IsGroup"]
-
+        is_quote = message.get("Quote", None)
+        
         if not user_input:
             await bot.send_at_message(from_wxid, "\n-----Bot-----\n你还没输入呀！🤔", [sender_wxid] if is_group else [])
             return
+        
+        if is_quote:
+            quote_input = is_quote["Content"]
+            if is_quote["MsgType"] == 1:
+                user_input = f"[引用信息：{quote_input}]\n{user_input}"
+            elif is_quote["MsgType"] == 3:
+                image_format = self.get_img_format(quote_input)
+                user_input = [
+                        {"type": "text", "text": user_input},
+                        {"type": "image_url", "image_url": {"url": f"data:image/{image_format};base64,{quote_input}"}},
+                    ]
+            elif is_quote["MsgType"] == 6:
+                mime_type = self.get_mime_type(is_quote["Filename"])
+                user_input = [
+                        {"type": "text", "text": user_input},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{quote_input}"}},
+                    ]
 
         try:
             # 上下文
@@ -384,7 +400,7 @@ class Ai(PluginBase):
             }
 
             # 消息类型
-            if message["MsgType"] == 1 and self.text_input:  # 文本输入
+            if (message["MsgType"] == 1 or message["MsgType"] == 49) and self.text_input:  # 文本输入
                 input_message = (
                     [SystemMessage(content=self.prompt)] if not history_flag else []
                 ) + [HumanMessage(content=user_input)]
@@ -555,6 +571,23 @@ class Ai(PluginBase):
             img_base64 = img_base64.split(',')[1]
         return imghdr.what(io.BytesIO(base64.b64decode(img_base64)))  # Python特有的用单行嵌套来加速性能
 
+    @staticmethod
+    def get_mime_type(file_name: str) -> str:
+        """Get MIME type from file extension or data"""
+        mime_map = {
+            'txt': 'text/plain',
+            'pdf': 'application/pdf', 
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'png': 'image/png',
+            'jpg': 'image/jpeg', 
+            'jpeg': 'image/jpeg',
+            'gif': 'image/gif',
+            'webp': 'image/webp'
+        }
+        file_ext = file_name.split('.')[-1].lower() if '.' in file_name else ''
+        return mime_map.get(file_ext, 'application/octet-stream')
+    
     async def delete_user_thread_id(self, bot: WechatAPIClient, message: dict):
         thread_id_dict = dict(self.db.get_llm_thread_id(message["SenderWxid"]))
         cursor = await self.sqlite_conn.cursor()
