@@ -29,15 +29,15 @@ ignore-mode = "None"            # 消息处理模式：
 whitelist = [# 白名单列表
     "wxid_1", # 个人用户微信ID
     "wxid_2",
-    "chatroom@111", # 群聊ID
-    "chatroom@222"
+    "111@chatroom", # 群聊ID
+    "222@chatroom"
 ]
 
 blacklist = [# 黑名单列表
     "wxid_3", # 个人用户微信ID
     "wxid_4",
-    "chatroom@333", # 群聊ID
-    "chatroom@444"
+    "333@chatroom", # 群聊ID
+    "444@chatroom"
 ]
 
 # OpenAI格式API设置
