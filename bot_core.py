@@ -172,9 +172,11 @@ async def bot_core():
             logger.success("已开启自动心跳")
         else:
             logger.warning("开启自动心跳失败")
+    except ValueError:
+        logger.warning("自动心跳已在运行")
     except Exception as e:
         if "在运行" not in e:
-            logger.warning("自动心跳启动失败")
+            logger.warning("自动心跳已在运行")
 
     # 初始化机器人
     xybot = XYBot(bot)
@@ -220,5 +222,5 @@ async def bot_core():
         if data:
             for message in data:
                 asyncio.create_task(handle_message(xybot, message))
-            while time.time() - now < 1:
-                pass
+        while time.time() - now < 1:
+            pass

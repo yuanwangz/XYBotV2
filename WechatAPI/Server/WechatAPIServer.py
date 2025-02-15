@@ -1,20 +1,20 @@
 import os
-import platform
+import pathlib
 import subprocess
 import threading
 
+import xywechatpad_binary
 from loguru import logger
 
 
 class WechatAPIServer:
     def __init__(self):
+        self.executable_path = xywechatpad_binary.copy_binary(pathlib.Path(__file__).parent.parent / "core")
+        self.executable_path = self.executable_path.absolute()
+
         self.log_process = None
         self.process = None
         self.server_process = None
-        self.macos_arm_executable_path = "../core/XYWechatPad-macos-arm"
-        self.macos_x86_executable_path = "../core/XYWechatPad-macos-x86"
-        self.linux_x86_executable_path = "../core/XYWechatPad-linux-x86"
-        self.windows_executable_path = "./WechatAPI/core/XYWechatPad-windows.exe"
 
         self.arguments = ["--port", "9000", "--mode", "release", "--redis-host", "127.0.0.1", "--redis-port", "6379",
                           "--redis-password", "", "--redis-db", "0"]
@@ -38,16 +38,7 @@ class WechatAPIServer:
         arguments = ["--port", str(port), "--mode", mode, "--redis-host", redis_host, "--redis-port", str(redis_port),
                      "--redis-password", redis_password, "--redis-db", str(redis_db)]
 
-        # check platform
-        if platform.system() == "Darwin":
-            if platform.processor() == "arm":
-                command = [self.macos_arm_executable_path] + arguments
-            else:
-                command = [self.macos_x86_executable_path] + arguments
-        elif platform.system() == "Linux":
-            command = [self.linux_x86_executable_path] + arguments
-        else:
-            command = [self.windows_executable_path] + arguments
+        command = [self.executable_path] + arguments
 
         self.process = subprocess.Popen(command, cwd=os.path.dirname(os.path.abspath(__file__)), stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)

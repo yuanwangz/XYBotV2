@@ -162,6 +162,7 @@
 <a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
 
+
 <div class="page">
     <header class="mobile-header">
         <div class="header-left">
@@ -597,6 +598,7 @@
                     <div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asyncio</span><span class="w"> </span><span
                             class="kn">import</span> <span class="n">Future</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asyncio</span><span class="w"> </span><span
@@ -604,10 +606,14 @@
                             class="n">sleep</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span
                             class="n">BytesIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span
+                            class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span
+                            class="kn">import</span> <span class="n">Union</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">aiohttp</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">moviepy</span><span class="w"> </span><span
-                            class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymediainfo</span><span class="w"> </span><span
+                            class="kn">import</span> <span class="n">MediaInfo</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pysilk</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">loguru</span><span class="w"> </span><span
                             class="kn">import</span> <span class="n">logger</span>
@@ -765,8 +771,13 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;消息撤回成功: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;消息撤回成功: 对方wxid:</span><span class="si">{}</span><span
+        class="s2"> ClientMsgId:</span><span class="si">{}</span><span class="s2"> CreateTime:</span><span
+        class="si">{}</span><span class="s2"> NewMsgId:</span><span class="si">{}</span><span
+        class="s2">&quot;</span><span class="p">,</span>
+                            <span class="n">wxid</span><span class="p">,</span>
+                            <span class="n">client_msg_id</span><span class="p">,</span>
+                            <span class="n">new_msg_id</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">error_handler</span><span class="p">(</span><span
@@ -861,8 +872,10 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送文字消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送文字消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> at:</span><span
+        class="si">{}</span><span class="s2"> 内容:</span><span class="si">{}</span><span class="s2">&quot;</span><span
+        class="p">,</span> <span class="n">wxid</span><span class="p">,</span> <span class="n">at</span><span class="p">,</span> <span
+        class="n">content</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -976,8 +989,9 @@
                 <span class="n">json_param</span><span class="o">.</span><span class="n">pop</span><span
         class="p">(</span><span class="s1">&#39;Base64&#39;</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送图片消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送图片消息: 对方wxid:</span><span class="si">{}</span><span
+        class="s2"> 图片base64略&quot;</span><span class="p">,</span> <span class="n">wxid</span><span
+        class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -991,116 +1005,118 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">error_handler</span><span class="p">(</span><span
         class="n">json_resp</span><span class="p">)</span>
-
 <div class="viewcode-block" id="MessageMixin.send_video_message">
 <a class="viewcode-back" href="../../../index.html#WechatAPI.Client.message.MessageMixin.send_video_message">[文档]</a>
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span
         class="nf">send_video_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span
         class="n">wxid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span
-        class="n">video_base64</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span
-        class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">image_base64</span><span
-        class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span
-        class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">video_path</span><span class="p">:</span> <span
-        class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                                 <span class="n">image_path</span><span class="p">:</span> <span
-        class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span
-        class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span
-        class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;发送视频消息。</span>
+        class="n">video</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span
+        class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span
+        class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span
+        class="n">image</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span
+        class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">os</span><span
+        class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span
+        class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span
+        class="sd">&quot;&quot;&quot;发送视频消息。不推荐使用，上传速度很慢300KB/s。如要使用，可压缩视频，或者发送链接卡片而不是视频。</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            wxid (str): 接收人wxid</span>
-<span class="sd">            video_base64 (str, optional): 视频base64编码，与video_path二选一. Defaults to &quot;&quot;.</span>
-<span class="sd">            image_base64 (str, optional): 视频封面图片base64编码，与image_path二选一. Defaults to &quot;&quot;.</span>
-<span class="sd">            video_path (str, optional): 视频文件路径，与video_base64二选一. Defaults to &quot;&quot;.</span>
-<span class="sd">            image_path (str, optional): 视频封面图片路径，与image_base64二选一. Defaults to &quot;&quot;.</span>
+<span class="sd">                Args:</span>
+<span class="sd">                    wxid (str): 接收人wxid</span>
+<span class="sd">                    video (str, bytes, os.PathLike): 视频 接受base64字符串，字节，文件路径</span>
+<span class="sd">                    image (str, bytes, os.PathLike): 视频封面图片 接受base64字符串，字节，文件路径</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            tuple[int, int]: 返回(ClientMsgid, NewMsgId)</span>
+<span class="sd">                Returns:</span>
+<span class="sd">                    tuple[int, int]: 返回(ClientMsgid, NewMsgId)</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">            UserLoggedOut: 未登录时调用</span>
-<span class="sd">            BanProtection: 登录新设备后4小时内操作</span>
-<span class="sd">            ValueError: 视频或图片参数都为空或都不为空时</span>
-<span class="sd">            根据error_handler处理错误</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span
-        class="o">.</span><span class="n">_queue_message</span><span class="p">(</span><span class="bp">self</span><span
-        class="o">.</span><span class="n">_send_video_message</span><span class="p">,</span> <span class="n">wxid</span><span
-        class="p">,</span> <span class="n">video_base64</span><span class="p">,</span> <span
-        class="n">image_base64</span><span class="p">,</span> <span class="n">video_path</span><span class="p">,</span>
-                                         <span class="n">image_path</span><span class="p">)</span></div>
-
-
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span
-        class="nf">_send_video_message</span><span class="p">(</span><span class="bp">self</span><span
-        class="p">,</span> <span class="n">wxid</span><span class="p">:</span> <span class="nb">str</span><span
-        class="p">,</span> <span class="n">video_base64</span><span class="p">:</span> <span class="nb">str</span> <span
-        class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span
-        class="n">image_base64</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span
-        class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">video_path</span><span class="p">:</span> <span
-        class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                                  <span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span> <span
-        class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span
-        class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span
-        class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span
-        class="n">wxid</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">UserLoggedOut</span><span class="p">(</span><span class="s2">&quot;请先登录&quot;</span><span
+<span class="sd">                Raises:</span>
+<span class="sd">                    UserLoggedOut: 未登录时调用</span>
+<span class="sd">                    BanProtection: 登录新设备后4小时内操作</span>
+<span class="sd">                    ValueError: 视频或图片参数都为空或都不为空时</span>
+<span class="sd">                    根据error_handler处理错误</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">image</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Path</span><span
+        class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span
+        class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span
+        class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span
+        class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span
+        class="s2">&quot;fallback.png&quot;</span><span class="p">))</span>
+        <span class="c1"># get video base64 and duration</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">video</span><span
+        class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">vid_base64</span> <span class="o">=</span> <span class="n">video</span>
+            <span class="n">video</span> <span class="o">=</span> <span class="n">base64</span><span
+        class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">video</span><span
         class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span
-        class="o">.</span><span class="n">ignore_protect</span> <span class="ow">and</span> <span
-        class="n">protector</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span
-        class="mi">14400</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">BanProtection</span><span class="p">(</span><span class="s2">&quot;登录新设备后4小时内请不要操作以避免风控&quot;</span><span
-        class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span
-        class="n">video_path</span><span class="p">)</span> <span class="o">==</span> <span class="nb">bool</span><span
-        class="p">(</span><span class="n">video_base64</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please provide either video_path or video_base64&quot;</span><span
-        class="p">)</span>
-        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span
-        class="n">image_path</span><span class="p">)</span> <span class="o">==</span> <span class="nb">bool</span><span
-        class="p">(</span><span class="n">image_base64</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please provide either image_path or image_base64&quot;</span><span
-        class="p">)</span>
-
-        <span class="c1"># get video base64, and get duration of video, 1000unit = 1 second</span>
-        <span class="k">if</span> <span class="n">video_path</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span
-        class="n">video_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span
-        class="p">)</span> <span class="k">as</span> <span class="n">video_file</span><span class="p">:</span>
-                <span class="n">video_base64</span> <span class="o">=</span> <span class="n">base64</span><span
-        class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">video_file</span><span
-        class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span
+            <span class="n">file_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span
+        class="n">video</span><span class="p">)</span>
+            <span class="n">media_info</span> <span class="o">=</span> <span class="n">MediaInfo</span><span
+        class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">BytesIO</span><span
+        class="p">(</span><span class="n">video</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span
+        class="n">video</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">vid_base64</span> <span class="o">=</span> <span class="n">base64</span><span
+        class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">video</span><span
+        class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+            <span class="n">file_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span
+        class="n">video</span><span class="p">)</span>
+            <span class="n">media_info</span> <span class="o">=</span> <span class="n">MediaInfo</span><span
+        class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">BytesIO</span><span
+        class="p">(</span><span class="n">video</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span
+        class="n">video</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span
+        class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">video</span><span
+        class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span
+        class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">file_len</span> <span class="o">=</span> <span class="nb">len</span><span
+        class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span
+        class="p">())</span>
+                <span class="n">vid_base64</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span
+        class="n">b64encode</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span
+        class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span
         class="p">()</span>
-            <span class="n">video</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span
-        class="n">VideoFileClip</span><span class="p">(</span><span class="n">video_path</span><span class="p">)</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span
-        class="n">video</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span
-        class="mi">1000</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">video_base64</span><span class="p">:</span>
-            <span class="n">video</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span
-        class="n">VideoFileClip</span><span class="p">(</span><span class="n">BytesIO</span><span
-        class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span
-        class="p">(</span><span class="n">video_base64</span><span class="p">)))</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span
-        class="n">video</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span
-        class="mi">1000</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please provide either video_path or video_base64&quot;</span><span
+            <span class="n">media_info</span> <span class="o">=</span> <span class="n">MediaInfo</span><span
+        class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">video</span><span
         class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;video should be str, bytes, or path&quot;</span><span
+        class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">media_info</span><span
+        class="o">.</span><span class="n">tracks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span
+        class="o">.</span><span class="n">duration</span>
 
         <span class="c1"># get image base64</span>
-        <span class="k">if</span> <span class="n">image_path</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span
-        class="n">image_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span
+        class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">image_base64</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span
+        class="n">image</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">image_base64</span> <span class="o">=</span> <span class="n">base64</span><span
+        class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">image</span><span
+        class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span
+        class="n">image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span
+        class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">image</span><span
+        class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span
         class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">image_base64</span> <span class="o">=</span> <span class="n">base64</span><span
         class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">f</span><span
         class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span
         class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;image should be str, bytes, or path&quot;</span><span
+        class="p">)</span>
+
+        <span class="c1"># 打印预估时间，300KB/s</span>
+        <span class="n">predict_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span
+        class="n">file_len</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span
+        class="mi">300</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
+        class="s2">&quot;开始发送视频: 对方wxid:</span><span class="si">{}</span><span class="s2"> 视频base64略 图片base64略 预计耗时:</span><span
+        class="si">{}</span><span class="s2">秒&quot;</span><span class="p">,</span> <span class="n">wxid</span><span
+        class="p">,</span> <span class="n">predict_time</span><span class="p">)</span>
 
         <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span
         class="o">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span
@@ -1109,39 +1125,42 @@
         class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxid</span><span
         class="p">,</span> <span class="s2">&quot;ToWxid&quot;</span><span class="p">:</span> <span
         class="n">wxid</span><span class="p">,</span> <span class="s2">&quot;Base64&quot;</span><span class="p">:</span> <span
-        class="n">video_base64</span><span class="p">,</span> <span class="s2">&quot;ImageBase64&quot;</span><span
+        class="n">vid_base64</span><span class="p">,</span> <span class="s2">&quot;ImageBase64&quot;</span><span
         class="p">:</span> <span class="n">image_base64</span><span class="p">,</span>
                           <span class="s2">&quot;PlayLength&quot;</span><span class="p">:</span> <span class="n">duration</span><span
         class="p">}</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span
         class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;http://</span><span
         class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ip</span><span
         class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="bp">self</span><span
         class="o">.</span><span class="n">port</span><span class="si">}</span><span class="s1">/SendVideoMsg&#39;</span><span
         class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">json_param</span><span
-        class="p">)</span>
-            <span class="n">json_resp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span
+        class="p">)</span> <span class="k">as</span> <span class="n">resp</span><span class="p">:</span>
+                <span class="n">json_resp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span
         class="o">.</span><span class="n">json</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
-        class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
-                <span class="n">json_param</span><span class="o">.</span><span class="n">pop</span><span
+        <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span
+        class="n">get</span><span class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
+            <span class="n">json_param</span><span class="o">.</span><span class="n">pop</span><span
         class="p">(</span><span class="s1">&#39;Base64&#39;</span><span class="p">)</span>
-                <span class="n">json_param</span><span class="o">.</span><span class="n">pop</span><span
+            <span class="n">json_param</span><span class="o">.</span><span class="n">pop</span><span
         class="p">(</span><span class="s1">&#39;ImageBase64&#39;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送视频消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span
+        class="p">(</span><span class="s2">&quot;发送视频成功: 对方wxid:</span><span class="si">{}</span><span
+        class="s2"> 时长:</span><span class="si">{}</span><span class="s2"> 视频base64略 图片base64略&quot;</span><span
+        class="p">,</span> <span class="n">wxid</span><span class="p">,</span> <span class="n">duration</span><span
+        class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span
-        class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;clientMsgId&quot;</span><span
-        class="p">)),</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span
+        class="n">get</span><span class="p">(</span><span class="s2">&quot;clientMsgId&quot;</span><span
+        class="p">),</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;newMsgId&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">error_handler</span><span class="p">(</span><span
-        class="n">json_resp</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_handler</span><span
+        class="p">(</span><span class="n">json_resp</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="MessageMixin.send_voice_message">
 <a class="viewcode-back" href="../../../index.html#WechatAPI.Client.message.MessageMixin.send_voice_message">[文档]</a>
@@ -1343,8 +1362,11 @@
                 <span class="n">json_param</span><span class="o">.</span><span class="n">pop</span><span
         class="p">(</span><span class="s1">&#39;Base64&#39;</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送语音消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送语音消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> 时长:</span><span
+        class="si">{}</span><span class="s2"> 格式:</span><span class="si">{}</span><span
+        class="s2"> 音频base64略&quot;</span><span class="p">,</span> <span class="n">wxid</span><span
+        class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="nb">format</span><span
+        class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -1448,8 +1470,15 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送链接消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送链接消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> 链接:</span><span
+        class="si">{}</span><span class="s2"> 标题:</span><span class="si">{}</span><span class="s2"> 描述:</span><span
+        class="si">{}</span><span class="s2"> 缩略图链接:</span><span class="si">{}</span><span class="s2">&quot;</span><span
+        class="p">,</span>
+                            <span class="n">wxid</span><span class="p">,</span>
+                            <span class="n">url</span><span class="p">,</span>
+                            <span class="n">title</span><span class="p">,</span>
+                            <span class="n">description</span><span class="p">,</span>
+                            <span class="n">thumb_url</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -1536,8 +1565,10 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送表情消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送表情消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> md5:</span><span
+        class="si">{}</span><span class="s2"> 总长度:</span><span class="si">{}</span><span
+        class="s2">&quot;</span><span class="p">,</span> <span class="n">wxid</span><span class="p">,</span> <span
+        class="n">md5</span><span class="p">,</span> <span class="n">total_length</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Data&quot;</span><span class="p">)</span><span class="o">.</span><span
         class="n">get</span><span class="p">(</span><span class="s2">&quot;emojiItem&quot;</span><span
@@ -1626,8 +1657,13 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送名片消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送名片消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> 名片wxid:</span><span
+        class="si">{}</span><span class="s2"> 名片备注:</span><span class="si">{}</span><span
+        class="s2"> 名片昵称:</span><span class="si">{}</span><span class="s2">&quot;</span><span
+        class="p">,</span> <span class="n">wxid</span><span class="p">,</span>
+                            <span class="n">card_wxid</span><span class="p">,</span>
+                            <span class="n">card_alias</span><span class="p">,</span>
+                            <span class="n">card_nickname</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -1725,8 +1761,11 @@
         class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span
         class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;发送app消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;发送app消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> 类型:</span><span
+        class="si">{}</span><span class="s2"> xml:</span><span class="si">{}</span><span class="s2">&quot;</span><span
+        class="p">,</span> <span class="n">wxid</span><span class="p">,</span> <span class="nb">type</span><span
+        class="p">,</span> <span class="n">json_param</span><span class="p">[</span><span
+        class="s2">&quot;Xml&quot;</span><span class="p">])</span>
                 <span class="k">return</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Data&quot;</span><span class="p">)</span><span class="o">.</span><span
         class="n">get</span><span class="p">(</span><span class="s2">&quot;clientMsgId&quot;</span><span
@@ -1809,8 +1848,9 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;转发文件消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;转发文件消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> xml:</span><span
+        class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">wxid</span><span
+        class="p">,</span> <span class="n">xml</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -1892,8 +1932,9 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;转发图片消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;转发图片消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> xml:</span><span
+        class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">wxid</span><span
+        class="p">,</span> <span class="n">xml</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
@@ -1974,8 +2015,9 @@
             <span class="k">if</span> <span class="n">json_resp</span><span class="o">.</span><span class="n">get</span><span
         class="p">(</span><span class="s2">&quot;Success&quot;</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span
-        class="sa">f</span><span class="s2">&quot;转发视频消息: </span><span class="si">{</span><span class="n">json_param</span><span
-        class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        class="s2">&quot;转发视频消息: 对方wxid:</span><span class="si">{}</span><span class="s2"> xml:</span><span
+        class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">wxid</span><span
+        class="p">,</span> <span class="n">xml</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">json_resp</span><span
         class="o">.</span><span class="n">get</span><span class="p">(</span><span
         class="s2">&quot;Data&quot;</span><span class="p">)</span>
