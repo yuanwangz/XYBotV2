@@ -83,7 +83,7 @@ class News(PluginBase):
                 chatrooms.append(id)
 
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://zj.v.api.aa1.cn/api/60s-v2/?cc=XYBot") as resp:
+            async with session.get("https://zj.v.api.aa1.cn/api/60s-v2/") as resp:
                 iamge_byte = await resp.read()
 
         image_base64 = bot.byte_to_base64(iamge_byte)
@@ -114,7 +114,7 @@ class News(PluginBase):
                 chatrooms.append(id)
 
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://v.api.aa1.cn/api/60s-v3/?cc=XYBot") as resp:
+            async with session.get("https://v.api.aa1.cn/api/60s-v3/") as resp:
                 iamge_byte = await resp.read()
 
         image_base64 = bot.byte_to_base64(iamge_byte)

@@ -338,6 +338,7 @@ count = 3
 
 [GoodMorning]
 enable = true
+task-whitelist = []
 
 [KPI]
 enable = true

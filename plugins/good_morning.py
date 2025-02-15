@@ -24,21 +24,27 @@ class GoodMorning(PluginBase):
         config = plugin_config["GoodMorning"]
 
         self.enable = config["enable"]
+        self.task_whitelist = config["task-whitelist"]
 
     @schedule('cron', hour=8, minute=30)
     async def daily_task(self, bot: WechatAPIClient):
         if not self.enable:
             return
 
-        id_list = []
-        wx_seq, chatroom_seq = 0, 0
-        while True:
-            contact_list = await bot.get_contract_list(wx_seq, chatroom_seq)
-            id_list.extend(contact_list["ContactUsernameList"])
-            wx_seq = contact_list["CurrentWxcontactSeq"]
-            chatroom_seq = contact_list["CurrentChatRoomContactSeq"]
-            if contact_list["CountinueFlag"] != 1:
-                break
+        if self.task_whitelist and bot.wx_id not in self.task_whitelist:
+            return
+
+        id_list = self.task_whitelist
+
+        # id_list = []
+        # wx_seq, chatroom_seq = 0, 0
+        # while True:
+        #     contact_list = await bot.get_contract_list(wx_seq, chatroom_seq)
+        #     id_list.extend(contact_list["ContactUsernameList"])
+        #     wx_seq = contact_list["CurrentWxcontactSeq"]
+        #     chatroom_seq = contact_list["CurrentChatRoomContactSeq"]
+        #     if contact_list["CountinueFlag"] != 1:
+        #         break
 
         chatrooms = []
         for id in id_list:
