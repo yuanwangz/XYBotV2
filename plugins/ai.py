@@ -353,7 +353,7 @@ class Ai(PluginBase):
             await self.get_ai_response(bot, message)
 
     @schedule('cron', hour=5)
-    async def reset_chat_history(self):
+    async def reset_chat_history(self, _):
         await self.async_init()
 
         r = await self.delete_all_user_thread_id()

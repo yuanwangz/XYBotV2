@@ -31,9 +31,6 @@ class GoodMorning(PluginBase):
         if not self.enable:
             return
 
-        if self.task_whitelist and bot.wx_id not in self.task_whitelist:
-            return
-
         id_list = self.task_whitelist
 
         # id_list = []
