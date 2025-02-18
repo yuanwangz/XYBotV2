@@ -39,6 +39,7 @@ class WechatAPIServer:
                      "--redis-password", redis_password, "--redis-db", str(redis_db)]
 
         command = [self.executable_path] + arguments
+        logger.info("启动WechatAPI服务器，命令: {}", command)
 
         self.process = subprocess.Popen(command, cwd=os.path.dirname(os.path.abspath(__file__)), stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
