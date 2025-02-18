@@ -93,7 +93,7 @@ class Gomoku(PluginBase):
                        f"🎉您收到了来自 {inviter_nick} 的五子棋比赛邀请！\n"
                        f"\n"
                        f"⚙️请在{self.timeout}秒内发送:\n"
-                       f"五子棋接受 {game_id}")
+                       f"接受 {game_id}")
         await bot.send_at_message(room_id, out_message, [invitee_wxid])
 
         # 创建游戏数据
@@ -169,8 +169,8 @@ class Gomoku(PluginBase):
             f"\n"
             f"⚫️黑方先手！\n"
             f"\n"
-            f"⚙️请发送: 五子棋下 坐标\n"
-            f"例如: 五子棋下 C5"
+            f"⚙️请发送: 下棋 坐标\n"
+            f"例如: 下棋 C5"
         )
         await bot.send_text_message(room_id, start_msg)
 
@@ -278,8 +278,8 @@ class Gomoku(PluginBase):
             f"\n"
             f"⏰限时：{self.timeout}秒\n"
             f"\n"
-            f"⚙️请发送: 五子棋下 坐标\n"
-            f"例如: 五子棋下 C5"
+            f"⚙️请发送: 下棋 坐标\n"
+            f"例如: 下棋 C5"
         )
         await bot.send_text_message(room_id, turn_msg)
 

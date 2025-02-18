@@ -163,6 +163,7 @@
 <a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
 
+
 <div class="page">
     <header class="mobile-header">
         <div class="header-left">
@@ -2085,66 +2086,39 @@
                                                 class="sig-name descname"><span
                                                 class="pre">send_video_message</span></span><span
                                                 class="sig-paren">(</span><em class="sig-param"><span class="n"><span
-                                                class="pre">wxid</span></span><span class="p"><span class="pre">:</span></span><span
-                                                class="w"> </span><span class="n"><span
-                                                class="pre">str</span></span></em>, <em class="sig-param"><span
-                                                class="n"><span class="pre">video_base64</span></span><span
-                                                class="p"><span class="pre">:</span></span><span class="w"> </span><span
-                                                class="n"><span class="pre">str</span></span><span
-                                                class="w"> </span><span class="o"><span class="pre">=</span></span><span
-                                                class="w"> </span><span class="default_value"><span
-                                                class="pre">''</span></span></em>, <em class="sig-param"><span
-                                                class="n"><span class="pre">image_base64</span></span><span
-                                                class="p"><span class="pre">:</span></span><span class="w"> </span><span
-                                                class="n"><span class="pre">str</span></span><span
-                                                class="w"> </span><span class="o"><span class="pre">=</span></span><span
-                                                class="w"> </span><span class="default_value"><span
-                                                class="pre">''</span></span></em>, <em class="sig-param"><span
-                                                class="n"><span class="pre">video_path</span></span><span
-                                                class="p"><span class="pre">:</span></span><span class="w"> </span><span
-                                                class="n"><span class="pre">str</span></span><span
-                                                class="w"> </span><span class="o"><span class="pre">=</span></span><span
-                                                class="w"> </span><span class="default_value"><span
-                                                class="pre">''</span></span></em>, <em class="sig-param"><span
-                                                class="n"><span class="pre">image_path</span></span><span
-                                                class="p"><span class="pre">:</span></span><span class="w"> </span><span
-                                                class="n"><span class="pre">str</span></span><span
-                                                class="w"> </span><span class="o"><span class="pre">=</span></span><span
-                                                class="w"> </span><span class="default_value"><span
-                                                class="pre">''</span></span></em><span class="sig-paren">)</span> <span
-                                                class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
-                                                class="sig-return-typehint"><span class="pre">tuple</span><span
-                                                class="p"><span class="pre">[</span></span><span
-                                                class="pre">int</span><span class="p"><span
-                                                class="pre">,</span></span><span class="w"> </span><span
-                                                class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a
-                                                class="reference internal"
-                                                href="_modules/WechatAPI/Client/message.html#MessageMixin.send_video_message"><span
+                                                class="pre">wxid:</span> <span class="pre">str</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span class="pre">video:</span> <span
+                                                class="pre">str</span> <span class="pre">|</span> <span class="pre">bytes</span> <span
+                                                class="pre">|</span> <span class="pre">~os.PathLike</span></span></em>,
+                                            <em class="sig-param"><span class="n"><span class="pre">image:</span> <span
+                                                    class="pre">[&lt;class</span> <span
+                                                    class="pre">'str'&gt;</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">&lt;class</span> <span class="pre">'bytes'&gt;</span></span></em>,
+                                            <em class="sig-param"><span class="n"><span
+                                                    class="pre">&lt;class</span> <span
+                                                    class="pre">'os.PathLike'&gt;]</span> <span
+                                                    class="pre">=</span> <span class="pre">None</span></span></em><span
+                                                class="sig-paren">)</span><a class="reference internal"
+                                                                             href="_modules/WechatAPI/Client/message.html#MessageMixin.send_video_message"><span
                                                 class="viewcode-link"><span class="pre">[源代码]</span></span></a><a
                                                 class="headerlink"
                                                 href="#WechatAPI.Client.message.MessageMixin.send_video_message"
                                                 title="Link to this definition">¶</a></dt>
-                                        <dd><p>发送视频消息。</p>
+                                        <dd><p>
+                                            发送视频消息。不推荐使用，上传速度很慢300KB/s。如要使用，可压缩视频，或者发送链接卡片而不是视频。</p>
                                             <dl class="field-list simple">
                                                 <dt class="field-odd">参数<span class="colon">:</span></dt>
                                                 <dd class="field-odd">
                                                     <ul class="simple">
                                                         <li><p><strong>wxid</strong> (<em>str</em>) -- 接收人wxid</p>
                                                         </li>
-                                                        <li><p><strong>video_base64</strong>
-                                                            (<em>str</em><em>, </em><em>optional</em>) --
-                                                            视频base64编码，与video_path二选一. Defaults to &quot;&quot;.
-                                                        </p></li>
-                                                        <li><p><strong>image_base64</strong>
-                                                            (<em>str</em><em>, </em><em>optional</em>) --
-                                                            视频封面图片base64编码，与image_path二选一. Defaults to
-                                                            &quot;&quot;.</p></li>
-                                                        <li><p><strong>video_path</strong> (<em>str</em><em>, </em><em>optional</em>)
-                                                            -- 视频文件路径，与video_base64二选一. Defaults to &quot;&quot;.
-                                                        </p></li>
-                                                        <li><p><strong>image_path</strong> (<em>str</em><em>, </em><em>optional</em>)
-                                                            -- 视频封面图片路径，与image_base64二选一. Defaults to &quot;&quot;.
-                                                        </p></li>
+                                                        <li><p><strong>video</strong>
+                                                            (<em>str</em><em>, </em><em>bytes</em><em>, </em><em>os.PathLike</em>)
+                                                            -- 视频 接受base64字符串，字节，文件路径</p></li>
+                                                        <li><p><strong>image</strong>
+                                                            (<em>str</em><em>, </em><em>bytes</em><em>, </em><em>os.PathLike</em>)
+                                                            -- 视频封面图片 接受base64字符串，字节，文件路径</p></li>
                                                     </ul>
                                                 </dd>
                                                 <dt class="field-even">返回<span class="colon">:</span></dt>
