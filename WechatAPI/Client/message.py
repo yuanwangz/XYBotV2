@@ -206,7 +206,7 @@ class MessageMixin(WechatAPIClientBase):
                 self.error_handler(json_resp)
 
     async def send_video_message(self, wxid: str, video: Union[str, bytes, os.PathLike],
-                                 image: [str, bytes, os.PathLike] = None):
+                                 image: Union[str, bytes, os.PathLike] = None):
         """发送视频消息。不推荐使用，上传速度很慢300KB/s。如要使用，可压缩视频，或者发送链接卡片而不是视频。
 
                 Args:
