@@ -48,10 +48,16 @@ class WechatAPIServer:
         if platform.system() == "Darwin":
             if platform.processor() == "arm":
                 command = [self.macos_arm_executable_path] + arguments
+                if not os.access(self.macos_arm_executable_path, os.X_OK):
+                    os.chmod(self.macos_arm_executable_path, 0o755)
             else:
                 command = [self.macos_x86_executable_path] + arguments
+                if not os.access(self.macos_x86_executable_path, os.X_OK):
+                    os.chmod(self.macos_x86_executable_path, 0o755)
         elif platform.system() == "Linux":
             command = [self.linux_x86_executable_path] + arguments
+            if not os.access(self.linux_x86_executable_path, os.X_OK):
+                os.chmod(self.linux_x86_executable_path, 0o755)
         else:
             command = [self.windows_executable_path] + arguments
 
