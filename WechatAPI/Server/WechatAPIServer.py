@@ -17,10 +17,11 @@ class WechatAPIServer:
         self.process = None
         self.server_process = None
         
-        self.macos_arm_executable_path = "../core/XYWechatPad-macos-arm"
-        self.macos_x86_executable_path = "../core/XYWechatPad-macos-x86"
-        self.linux_x86_executable_path = "../core/XYWechatPad-linux-x86"
-        self.windows_executable_path = "./WechatAPI/core/XYWechatPad-windows.exe"
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        self.macos_arm_executable_path = os.path.join(base_path, "../core/XYWechatPad-macos-arm")
+        self.macos_x86_executable_path = os.path.join(base_path, "../core/XYWechatPad-macos-x86")
+        self.linux_x86_executable_path = os.path.join(base_path, "../core/XYWechatPad-linux-x86")
+        self.windows_executable_path = os.path.join(base_path, "./WechatAPI/core/XYWechatPad-windows.exe")
 
         self.arguments = ["--port", "9000", "--mode", "release", "--redis-host", "127.0.0.1", "--redis-port", "6379",
                           "--redis-password", "", "--redis-db", "0"]
