@@ -597,8 +597,8 @@ class Ai(PluginBase):
         cursor = await self.sqlite_conn.cursor()
         try:
             for value in thread_id_dict.values():
-                cursor.execute("DELETE FROM checkpoints WHERE thread_id = ?", (value,))
-                cursor.execute("DELETE FROM writes WHERE thread_id = ?", (value,))
+                await cursor.execute("DELETE FROM checkpoints WHERE thread_id = ?", (value,))
+                await cursor.execute("DELETE FROM writes WHERE thread_id = ?", (value,))
             await self.sqlite_conn.commit()
         except Exception as e:
             await bot.send_at_message(
