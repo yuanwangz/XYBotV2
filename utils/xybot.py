@@ -403,7 +403,7 @@ class XYBot:
         message["Quote"] = quote_messsage
 
         logger.info("收到引用消息: 消息ID:{} 来自:{} 发送人:{}  内容:{} 引用:{}",
-                    message.get("Msgid", ""),
+                    message["Msgid"],
                     message["FromWxid"],
                     message["SenderWxid"],
                     message["Content"],
