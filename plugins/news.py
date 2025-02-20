@@ -56,8 +56,9 @@ class News(PluginBase):
                                         thumb_url=new["thumbnail_pic_s"])
 
         else:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://zj.v.api.aa1.cn/api/60s-v2/?cc=XYBot") as resp:
+            conn = aiohttp.TCPConnector(ssl=False)
+            async with aiohttp.ClientSession(connector=conn) as session:
+                async with session.get("https://zj.v.api.aa1.cn/api/60s-v2/") as resp:
                     image_byte = await resp.read()
             await bot.send_image_message(message["FromWxid"], image_base64=bot.byte_to_base64(image_byte))
 
