@@ -82,7 +82,8 @@ class News(PluginBase):
             if id.endswith("@chatroom"):
                 chatrooms.append(id)
 
-        async with aiohttp.ClientSession() as session:
+        conn = aiohttp.TCPConnector(ssl=False)
+        async with aiohttp.ClientSession(connector=conn) as session:
             async with session.get("https://zj.v.api.aa1.cn/api/60s-v2/") as resp:
                 iamge_byte = await resp.read()
 
@@ -113,7 +114,8 @@ class News(PluginBase):
             if id.endswith("@chatroom"):
                 chatrooms.append(id)
 
-        async with aiohttp.ClientSession() as session:
+        conn = aiohttp.TCPConnector(ssl=False)
+        async with aiohttp.ClientSession(connector=conn) as session:
             async with session.get("https://v.api.aa1.cn/api/60s-v3/") as resp:
                 iamge_byte = await resp.read()
 
