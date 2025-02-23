@@ -492,7 +492,8 @@ class Ai(PluginBase):
             if last_message.additional_kwargs.get("tool_calls"):
                 for tool_call in last_message.additional_kwargs["tool_calls"]:
                     if tool_call["function"]["name"] == "GenerateImage":
-                        await bot.send_at_message(from_wxid, f"\n🖼️正在生成图片...", [sender_wxid] if is_group else [])
+                        # await bot.send_at_message(from_wxid, f"\n🖼️正在生成图片...", [sender_wxid] if is_group else [])
+                        await bot.send_emoji_message(from_wxid, "4977c6a4a01fc1b687cb139e1ec406e3", 1)
                         try:
                             prompt = json.loads(tool_call["function"]["arguments"])["prompt"]
                             b64_list = await self.generate_image(prompt)
