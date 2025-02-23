@@ -522,12 +522,11 @@ class Ai(PluginBase):
                 prompt=prompt,
                 size=self.image_size,
                 n=1,
-                response_format="b64_json",
                 extra_body=self.image_additional_param
             )
             b64_list = []
             for item in resp.data:
-                b64_list.append(item.b64_json)
+                b64_list.append(item.url)
             return b64_list
         except:
             logger.error(traceback.format_exc())
