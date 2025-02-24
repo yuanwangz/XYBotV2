@@ -4,7 +4,6 @@ import imghdr
 import io
 import json
 import tomllib
-import aiohttp
 import traceback
 from uuid import uuid4
 
@@ -575,7 +574,7 @@ class Ai(PluginBase):
                     openai_messages.append({"role": "user", "content": msg.content})
                 elif isinstance(msg, ToolMessage):
                     openai_messages.append({"role": "tool", "content": msg.content})
-                    
+            logger.debug("请求联网AI的API, thread id: {}", openai_messages)
             resp = await client.chat.completions.create(
                 model=self.internet_access_model_name,
                 messages=openai_messages,
