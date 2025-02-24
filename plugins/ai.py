@@ -468,6 +468,7 @@ class Ai(PluginBase):
             # 请求API
             logger.debug("请求AI的API, thread id: {}", thread_id)
             output = await self.ai.ainvoke({"messages": input_message}, configurable)
+            old_output = output
             last_message = output["messages"][-1]
             # 什么类型输入，什么类型输出
             if message["MsgType"] == 1 and self.text_output:  # 文本输出
@@ -477,6 +478,7 @@ class Ai(PluginBase):
                     output = last_message.content
 
                 if output:
+                    logger.debug("output: {}", output)
                     await bot.send_at_message(from_wxid, "\n" + output, [sender_wxid] if is_group else [])
 
             elif message["MsgType"] == 3 and self.image_output:  # 图片输出
@@ -522,7 +524,7 @@ class Ai(PluginBase):
                     elif tool_call["function"]["name"] == "InternetAccess":
                         logger.debug("请求联网AI的API, thread id: {}", thread_id)
                         try:
-                            output = await self.internet_access(output)
+                            output = await self.internet_access(old_output)
                             await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
                         except Exception as e:
                             logger.error(traceback.format_exc())
@@ -563,17 +565,14 @@ class Ai(PluginBase):
             base_url=self.internet_access_base_url,
             api_key=self.internet_access_api_key
         )
-
         try:
             # Convert langchain messages to OpenAI format
             openai_messages = []
-            for msg in input_message:
+            for msg in input_message["messages"]:
                 if isinstance(msg, SystemMessage):
                     openai_messages.append({"role": "system", "content": msg.content})
                 elif isinstance(msg, HumanMessage):
                     openai_messages.append({"role": "user", "content": msg.content})
-                elif isinstance(msg, ToolMessage):
-                    openai_messages.append({"role": "tool", "content": msg.content})
             logger.debug("请求联网AI的API, thread id: {}", openai_messages)
             resp = await client.chat.completions.create(
                 model=self.internet_access_model_name,
