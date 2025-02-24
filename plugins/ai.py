@@ -157,7 +157,9 @@ class Ai(PluginBase):
         
         # 读取 [Ai.InternetAccess] 设置
         config = plugin_config["Ai"]["InternetAccess"]
-        self.internet_access_api_key = config["api-key"]
+        self.internet_access_base_url = config["base-url"] if config["base-url"] else openai_config["base-url"]
+        self.internet_access_api_key = config["api-key"] if config["api-key"] else openai_config["api-key"]
+        self.internet_access_model_name = config["model-name"]
 
         # 读取主设置
         self.admins = main_config["admins"]
@@ -519,16 +521,10 @@ class Ai(PluginBase):
                             logger.error(f"生成图片失败: {traceback.format_exc()}")
                             await bot.send_at_message(from_wxid, f"\n生成图片失败: {str(e)}", [sender_wxid] if is_group else [])
                     elif tool_call["function"]["name"] == "InternetAccess":
+                        logger.debug("请求联网AI的API, thread id: {}", thread_id)
                         try:
-                            query = json.loads(tool_call["function"]["arguments"])["query"]
-                            result = await self.internet_access(query)
-                            input_message = (
-                                [SystemMessage(content=self.prompt)] if not history_flag else []
-                            ) + [ToolMessage(content=result,tool_call_id=tool_call["id"], name=tool_call["function"]["name"],)
-                                ]
-                            output = await self.ai.ainvoke({"messages": input_message}, configurable)
-                            last_message = output["messages"][-1]
-                            await bot.send_at_message(from_wxid, f"\n{last_message.content}", [sender_wxid] if is_group else [])
+                            output = await self.internet_access(input_message)
+                            await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             await bot.send_at_message(from_wxid, f"\n请求失败: {str(e)}", [sender_wxid] if is_group else [])
@@ -563,22 +559,32 @@ class Ai(PluginBase):
             logger.error(traceback.format_exc())
             raise
     
-    async def internet_access(self, query: str) -> str:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                'https://api.tavily.com/search',
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.internet_access_api_key}"
-                },
-                json={"query": query}
-            ) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return data
-                else:
-                    logger.error(f"API 请求失败: {response.status}")
-                    return "请求失败"
+    async def internet_access(self, input_message: list) -> str:
+        client = AsyncOpenAI(
+            base_url=self.internet_access_base_url,
+            api_key=self.internet_access_api_key
+        )
+
+        try:
+            # Convert langchain messages to OpenAI format
+            openai_messages = []
+            for msg in input_message:
+                if isinstance(msg, SystemMessage):
+                    openai_messages.append({"role": "system", "content": msg.content})
+                elif isinstance(msg, HumanMessage):
+                    openai_messages.append({"role": "user", "content": msg.content})
+                elif isinstance(msg, ToolMessage):
+                    openai_messages.append({"role": "tool", "content": msg.content})
+                    
+            resp = await client.chat.completions.create(
+                model=self.internet_access_model_name,
+                messages=openai_messages,
+                stream=False,
+            )
+            return resp.choices[0].message.content
+        except:
+            logger.error(traceback.format_exc())
+            raise
 
     async def get_text_from_voice(self, user_input: bytes):
         tempfile = io.BytesIO(user_input)
