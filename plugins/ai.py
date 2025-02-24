@@ -527,7 +527,7 @@ class Ai(PluginBase):
                             ) + [ToolMessage(content=result,tool_call_id=tool_call["id"], name=tool_call["function"]["name"],)
                                 ]
                             output = await self.ai.ainvoke({"messages": input_message}, configurable)
-                            await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
+                            await bot.send_at_message(from_wxid, f"\n{output["messages"][-1].content}", [sender_wxid] if is_group else [])
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             await bot.send_at_message(from_wxid, f"\n请求失败: {str(e)}", [sender_wxid] if is_group else [])
