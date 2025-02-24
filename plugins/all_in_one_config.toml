@@ -49,6 +49,8 @@ image-output = false # 是否开启tool-call，让模型能调用生成图片功
 # NonNative 代表模型不原生支持，需要调用文字转语音模型，需要在下面进行设置
 voice-output = "None"
 
+internet-access = false # 是否tool-call开启网络访问,让模型能联网查询 （需要设置tavily api-key）
+
 # 模型具体设置
 temperature = 0.7
 max-history-messages = 5  # 最大历史消息数
@@ -89,6 +91,9 @@ model-name = ""
 voice = "" # 音色信息
 speed = "1.0" # 语速
 additional-param = { }
+
+[Ai.InternetAccess]
+api-key = "" # 需要tavily api-key, 申请链接：https://app.tavily.com
 
 [BotStatus]
 enable = true

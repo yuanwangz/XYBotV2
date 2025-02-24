@@ -4,12 +4,12 @@ import imghdr
 import io
 import json
 import tomllib
+import aiohttp
 import traceback
 from uuid import uuid4
 
 import aiosqlite
-from langchain_core.messages import HumanMessage
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import START, MessagesState, StateGraph
@@ -26,6 +26,10 @@ from utils.plugin_base import PluginBase
 class GenerateImage(BaseModel):
     """Generate a image using AI. 用AI生成一个图片。"""
     prompt: str = Field(..., description="The prompt(or description) of image")
+
+class InternetAccess(BaseModel):
+    """Access the internet. 访问网络。"""
+    query: str = Field(..., description="The query keywords for internet search engine")
 
 
 class Ai(PluginBase):
@@ -82,6 +86,7 @@ class Ai(PluginBase):
         self.image_input = config["image-input"]
         self.image_formats = config["image-formats"]
         self.voice_input = config["voice-input"]
+        self.internet_access = config["internet-access"]
 
         if self.voice_input not in ["None", "Native", "NonNative"]:
             logger.error("AI插件设置错误：voice-input 必须为 None 或者 Native 或者 NonNative")
@@ -149,6 +154,10 @@ class Ai(PluginBase):
         self.text2speech_voice = config["voice"]
         self.text2speech_speed = config["speed"]
         self.text2speech_additional_param = config["additional-param"]
+        
+        # 读取 [Ai.InternetAccess] 设置
+        config = plugin_config["Ai"]["InternetAccess"]
+        self.internet_access_api_key = config["api-key"]
 
         # 读取主设置
         self.admins = main_config["admins"]
@@ -163,8 +172,15 @@ class Ai(PluginBase):
         )
 
         # tool-call
+        tools = []
         if self.image_output:
-            tools = [GenerateImage]
+            tools.append(GenerateImage)
+            self.llm = self.llm.bind_tools(tools)
+        if self.internet_access:
+            tools.append(InternetAccess)
+            self.llm = self.llm.bind_tools(tools)
+        
+        if tools:
             self.llm = self.llm.bind_tools(tools)
 
         # 初始化机器人数据库
@@ -502,6 +518,19 @@ class Ai(PluginBase):
                         except Exception as e:
                             logger.error(f"生成图片失败: {traceback.format_exc()}")
                             await bot.send_at_message(from_wxid, f"\n生成图片失败: {str(e)}", [sender_wxid] if is_group else [])
+                    elif tool_call["function"]["name"] == "InternetAccess":
+                        try:
+                            query = json.loads(tool_call["function"]["arguments"])["query"]
+                            result = await self.internet_access(query)
+                            input_message = (
+                                [SystemMessage(content=self.prompt)] if not history_flag else []
+                            ) + [ToolMessage(content=result,tool_call_id=tool_call["id"], name=tool_call["function"]["name"],)
+                                ]
+                            output = await self.ai.ainvoke({"messages": input_message}, configurable)
+                            await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
+                        except Exception as e:
+                            logger.error(traceback.format_exc())
+                            await bot.send_at_message(from_wxid, f"\n请求失败: {str(e)}", [sender_wxid] if is_group else [])
 
         except Exception as e:
             await bot.send_at_message(
@@ -532,6 +561,23 @@ class Ai(PluginBase):
         except:
             logger.error(traceback.format_exc())
             raise
+    
+    async def internet_access(self, query: str) -> str:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                'https://api.tavily.com/search',
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.internet_access_api_key}"
+                },
+                json={"query": query}
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data
+                else:
+                    logger.error(f"API 请求失败: {response.status}")
+                    return "请求失败"
 
     async def get_text_from_voice(self, user_input: bytes):
         tempfile = io.BytesIO(user_input)
