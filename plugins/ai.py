@@ -86,7 +86,7 @@ class Ai(PluginBase):
         self.image_input = config["image-input"]
         self.image_formats = config["image-formats"]
         self.voice_input = config["voice-input"]
-        self.internet_access = config["internet-access"]
+        self.enable_internet_access = config["internet-access"]
 
         if self.voice_input not in ["None", "Native", "NonNative"]:
             logger.error("AI插件设置错误：voice-input 必须为 None 或者 Native 或者 NonNative")
@@ -176,7 +176,7 @@ class Ai(PluginBase):
         if self.image_output:
             tools.append(GenerateImage)
             self.llm = self.llm.bind_tools(tools)
-        if self.internet_access:
+        if self.enable_internet_access:
             tools.append(InternetAccess)
             self.llm = self.llm.bind_tools(tools)
         
