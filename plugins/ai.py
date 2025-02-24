@@ -28,7 +28,7 @@ class GenerateImage(BaseModel):
     prompt: str = Field(..., description="The prompt(or description) of image")
 
 class InternetAccess(BaseModel):
-    """Access the internet. 访问网络。"""
+    """Access the internet to search for real-time information and answer queries. This tool allows retrieving up-to-date data from search engines to provide accurate responses about current events, facts, and general knowledge."""
     query: str = Field(..., description="The query keywords for internet search engine")
 
 
