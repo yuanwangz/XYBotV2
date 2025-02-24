@@ -522,7 +522,7 @@ class Ai(PluginBase):
                     elif tool_call["function"]["name"] == "InternetAccess":
                         logger.debug("请求联网AI的API, thread id: {}", thread_id)
                         try:
-                            output = await self.internet_access(input_message)
+                            output = await self.internet_access(output)
                             await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
                         except Exception as e:
                             logger.error(traceback.format_exc())
