@@ -8,7 +8,7 @@ import traceback
 from uuid import uuid4
 
 import aiosqlite
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import START, MessagesState, StateGraph
@@ -577,6 +577,8 @@ class Ai(PluginBase):
                     openai_messages.append({"role": "system", "content": msg.content})
                 elif isinstance(msg, HumanMessage):
                     openai_messages.append({"role": "user", "content": msg.content})
+                elif isinstance(msg, AIMessage):
+                    openai_messages.append({"role": "assistant", "content": msg.content})
             logger.debug("请求联网AI的API, thread id: {}", openai_messages)
             resp = await client.chat.completions.create(
                 model=self.internet_access_model_name,
