@@ -261,7 +261,7 @@ class XYBot:
             ats = ats.strip(",").split(",")
         else:  # 修复
             ats = []
-        message["Ats"] = ats if ats[0] != "" else []
+        message["Ats"] = ats if (ats and ats[0] != "") else []
         if self.wxid in ats:
             message["is_at"] = True
         if type == 57:
@@ -402,8 +402,7 @@ class XYBot:
         message["Content"] = text
         message["Quote"] = quote_messsage
 
-        logger.info("收到引用消息: 消息ID:{} 来自:{} 发送人:{}  内容:{} 引用:{}",
-                    message["Msgid"],
+        logger.info("收到引用消息: 来自:{} 发送人:{}  内容:{} 引用:{}",
                     message["FromWxid"],
                     message["SenderWxid"],
                     message["Content"],

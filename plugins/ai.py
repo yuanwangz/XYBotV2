@@ -406,7 +406,6 @@ class Ai(PluginBase):
                         {"type": "text", "text": user_input},
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{quote_input}"}},
                     ]
-
         try:
             # 上下文
             thread_id = self.db.get_llm_thread_id(sender_wxid if not is_group else from_wxid, self.model_name)
@@ -414,12 +413,12 @@ class Ai(PluginBase):
             if not thread_id:
                 thread_id = str(uuid4())
                 history_flag = False
-                self.db.save_llm_thread_id(sender_wxid if not is_group else from_wxid, thread_id, self.model_name)
             configurable = {
                 "configurable": {
                     "thread_id": thread_id,
                 }
             }
+            logger.debug("history_flag: {}", history_flag)
 
             # 消息类型
             if (message["MsgType"] == 1 or message["MsgType"] == 49) and self.text_input:  # 文本输入
@@ -468,6 +467,11 @@ class Ai(PluginBase):
             # 请求API
             logger.debug("请求AI的API, thread id: {}", thread_id)
             output = await self.ai.ainvoke({"messages": input_message}, configurable)
+            
+            # AI调用成功后，如果是新对话才保存thread_id
+            if not history_flag:
+                self.db.save_llm_thread_id(sender_wxid if not is_group else from_wxid, thread_id, self.model_name)
+                
             old_output = output
             last_message = output["messages"][-1]
             # 什么类型输入，什么类型输出
