@@ -572,10 +572,9 @@ class Ai(PluginBase):
         try:
             # Convert langchain messages to OpenAI format
             openai_messages = []
+            openai_messages.append({"role": "system", "content": "你是一个网络实时信息搜索工具，你根据用户的问题，使用联网搜索能力搜索相关信息，并总结返回搜索结果。"})
             for msg in input_message["messages"]:
-                if isinstance(msg, SystemMessage):
-                    openai_messages.append({"role": "system", "content": msg.content})
-                elif isinstance(msg, HumanMessage):
+                if isinstance(msg, HumanMessage):
                     openai_messages.append({"role": "user", "content": msg.content})
                 elif isinstance(msg, AIMessage):
                     openai_messages.append({"role": "assistant", "content": msg.content})
