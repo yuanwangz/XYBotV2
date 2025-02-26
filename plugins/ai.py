@@ -6,6 +6,7 @@ import json
 import tomllib
 import traceback
 from uuid import uuid4
+from datetime import datetime 
 
 import aiosqlite
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, AIMessage
@@ -572,7 +573,7 @@ class Ai(PluginBase):
         try:
             # Convert langchain messages to OpenAI format
             openai_messages = []
-            openai_messages.append({"role": "system", "content": "你是一个网络实时信息搜索工具，你根据用户的问题，使用联网搜索能力搜索相关信息，并总结返回搜索结果。"})
+            openai_messages.append({"role": "system", "content": "现在时间是：" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "，你是一个网络实时信息搜索工具，你根据用户的问题，使用联网搜索能力搜索相关信息，并总结返回搜索结果。"})
             for msg in input_message["messages"]:
                 if isinstance(msg, HumanMessage):
                     openai_messages.append({"role": "user", "content": msg.content})
