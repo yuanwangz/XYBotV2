@@ -576,7 +576,7 @@ class Ai(PluginBase):
             for msg in input_message["messages"]:
                 if isinstance(msg, HumanMessage):
                     openai_messages.append({"role": "user", "content": msg.content})
-                elif isinstance(msg, AIMessage):
+                elif isinstance(msg, AIMessage) and msg.content:
                     openai_messages.append({"role": "assistant", "content": msg.content})
             logger.debug("请求联网AI的API, thread id: {}", openai_messages)
             resp = await client.chat.completions.create(
