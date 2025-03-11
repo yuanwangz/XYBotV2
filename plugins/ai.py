@@ -443,6 +443,7 @@ class Ai(PluginBase):
                     [SystemMessage(content=self.prompt)] if not history_flag else []
                 ) + [HumanMessage(content=[
                         {"type": "image_url", "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}},
+                        {"type": "text", "text": "详细描述图片内容有什么"},
                     ])
                 ]
 
