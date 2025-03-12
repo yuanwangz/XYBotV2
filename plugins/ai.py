@@ -197,40 +197,36 @@ class Ai(PluginBase):
 
     async def async_init(self):
         try:
+            # 移除旧的连接检查逻辑
+            # 直接创建新连接
             if self.sqlite_conn:
-                try:
-                    async with self.sqlite_conn.cursor() as cursor:
-                        await cursor.execute("SELECT 1")
-                    return  # 如果查询成功，说明连接有效，直接返回
-                except Exception:
-                    # 如果查询失败，说明连接无效，需要重新初始化
-                    if self.sqlite_conn:
-                        await self.sqlite_conn.close()
-
-            # 创建新连接和初始化
+                await self.sqlite_conn.close()
+            
             self.sqlite_conn = await aiosqlite.connect(self.ai_db_url)
             self.sqlite_saver = AsyncSqliteSaver(self.sqlite_conn)
 
+            # 保持后续初始化逻辑不变
             workflow = StateGraph(state_schema=MessagesState)
             workflow.add_edge(START, "model")
             workflow.add_node("model", self.call_model)
 
             self.ai = workflow.compile(checkpointer=self.sqlite_saver)
-
             self.inited = True
-
             logger.info("AI插件数据库初始化完毕")
         except Exception as e:
             logger.error(f"数据库初始化失败: {str(e)}")
             raise
 
     def __del__(self):
-        """确保资源被正确释放"""
-        try:
-            if hasattr(self, 'sqlite_conn') and self.sqlite_conn:
-                asyncio.run(self.sqlite_conn.close())
-        except Exception as e:
-            logger.error(f"关闭数据库连接时出错: {str(e)}")
+        if self.sqlite_conn and self.sqlite_conn._running:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(self.sqlite_conn.close())
+                else:
+                    loop.run_until_complete(self.sqlite_conn.close())
+            except Exception as e:
+                logger.error(f"关闭数据库连接时出错: {str(e)}")
 
     async def call_model(self, state: MessagesState):
         """处理所有类型的消息"""
@@ -677,27 +673,19 @@ class Ai(PluginBase):
         return
 
     async def delete_all_user_thread_id(self) -> bool:
-        logger.debug(self.db)
-        self.db.delete_all_llm_thread_id()
-
+        # 在操作前检查连接
+        if not self.sqlite_conn or self.sqlite_conn.is_closed():
+            await self.async_init()
+        
         cursor = await self.sqlite_conn.cursor()
         try:
             await cursor.execute("DELETE FROM checkpoints")
             await cursor.execute("DELETE FROM writes")
             await self.sqlite_conn.commit()
 
-            # 关闭当前连接
-            await cursor.close()
-            await self.sqlite_conn.close()
-
-            # 重新建立连接并执行 VACUUM
-            self.sqlite_conn = await aiosqlite.connect(self.ai_db_url)
-            cursor = await self.sqlite_conn.cursor()
+            # 移除关闭连接的操作
             await cursor.execute("VACUUM")
-
-            # 重新初始化 sqlite_saver
-            self.sqlite_saver = AsyncSqliteSaver(self.sqlite_conn)
-
+            
         except Exception as e:
             logger.error(traceback.format_exc())
             return False
