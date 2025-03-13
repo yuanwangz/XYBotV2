@@ -526,7 +526,8 @@ class Ai(PluginBase):
                     elif tool_call["function"]["name"] == "InternetAccess":
                         logger.debug("请求联网AI的API, thread id: {}", thread_id)
                         try:
-                            output = await self.internet_access(old_output)
+                            prompt = json.loads(tool_call["function"]["arguments"])["query"]
+                            output = await self.internet_access(old_output,prompt)
                             await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
                         except Exception as e:
                             logger.error(traceback.format_exc())
@@ -562,7 +563,7 @@ class Ai(PluginBase):
             logger.error(traceback.format_exc())
             raise
     
-    async def internet_access(self, input_message: list) -> str:
+    async def internet_access(self, input_message: list, query: str) -> str:
         client = AsyncOpenAI(
             base_url=self.internet_access_base_url,
             api_key=self.internet_access_api_key
@@ -576,6 +577,13 @@ class Ai(PluginBase):
                     openai_messages.append({"role": "user", "content": msg.content})
                 elif isinstance(msg, AIMessage) and msg.content:
                     openai_messages.append({"role": "assistant", "content": msg.content})
+            
+            # 将最后一个消息替换为查询内容
+            if openai_messages and openai_messages[-1]["role"] == "user":
+                openai_messages[-1]["content"] = query
+            else:
+                openai_messages.append({"role": "user", "content": query})
+            
             logger.debug("请求联网AI的API, thread id: {}", openai_messages)
             resp = await client.chat.completions.create(
                 model=self.internet_access_model_name,
