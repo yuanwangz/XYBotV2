@@ -132,22 +132,32 @@ class MessageMixin(WechatAPIClientBase):
         
         # 提取图片链接并移除markdown格式
         content = re.sub(img_pattern, '', content).strip()
-        # 如果有图片链接，保存供后续使用
+        
+        # 清理多余的换行符和空行
+        content = re.sub(r'\n{3,}', '\n\n', content)  # 将3个以上连续换行符替换为2个
+        content = re.sub(r'^\s*\n', '', content)      # 移除开头的空行
+        content = re.sub(r'\n\s*$', '', content)      # 移除结尾的空行
+        
+        # 如果有图片链接，循环发送所有图片
         if img_matches:
-            self.last_img_url = img_matches[0]
-            await self._send_image_message(wxid, image_base64=self.last_img_url)
+            # 保存最后一个图片URL以保持兼容性
+            self.last_img_url = img_matches[-1]
+            # 循环发送所有图片
+            for img_url in img_matches:
+                await self._send_image_message(wxid, image_base64=img_url)
 
         async with aiohttp.ClientSession() as session:
-            json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Content": content, "Type": 1, "At": at_str}
-            response = await session.post(f'http://{self.ip}:{self.port}/SendTextMsg', json=json_param)
-            json_resp = await response.json()
-            if json_resp.get("Success"):
-                logger.info("发送文字消息: 对方wxid:{} at:{} 内容:{}", wxid, at, content)
-                data = json_resp.get("Data")
-                return data.get("List")[0].get("ClientMsgid"), data.get("List")[0].get("Createtime"), data.get("List")[
-                    0].get("NewMsgId")
-            else:
-                self.error_handler(json_resp)
+            if content.strip():
+                json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Content": content, "Type": 1, "At": at_str}
+                response = await session.post(f'http://{self.ip}:{self.port}/SendTextMsg', json=json_param)
+                json_resp = await response.json()
+                if json_resp.get("Success"):
+                    logger.info("发送文字消息: 对方wxid:{} at:{} 内容:{}", wxid, at, content)
+                    data = json_resp.get("Data")
+                    return data.get("List")[0].get("ClientMsgid"), data.get("List")[0].get("Createtime"), data.get("List")[
+                        0].get("NewMsgId")
+                else:
+                    self.error_handler(json_resp)
 
     async def send_image_message(self, wxid: str, image_path: str = "", image_base64: str = "") -> tuple[int, int, int]:
         """发送图片消息。
@@ -266,8 +276,6 @@ class MessageMixin(WechatAPIClientBase):
                 logger.info("发送视频消息: 对方wxid:{} 时长:{} 视频base64略 图片base64略", wxid, duration)
                 data = json_resp.get("Data")
                 return int(data.get("clientMsgId")), data.get("newMsgId")
-            else:
-                self.error_handler(json_resp)
 
     async def send_voice_message(self, wxid: str, voice_base64: str = "", voice_path: str = "", format: str = "amr") -> \
             tuple[int, int, int]:

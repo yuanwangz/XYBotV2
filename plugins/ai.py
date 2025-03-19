@@ -21,6 +21,7 @@ from WechatAPI import WechatAPIClient
 from database import BotDatabase
 from utils.decorators import *
 from utils.plugin_base import PluginBase
+import re
 
 
 class GenerateImage(BaseModel):
@@ -133,6 +134,7 @@ class Ai(PluginBase):
         config = plugin_config["Ai"]["GenerateImage"]
         self.image_base_url = config["base-url"] if config["base-url"] else openai_config["base-url"]
         self.image_api_key = config["api-key"] if config["api-key"] else openai_config["api-key"]
+        self.image_output_type = config["image-output-type"]
         self.image_model_name = config["model-name"]
         self.image_size = config["size"]
         self.image_additional_param = config["additional-param"]
@@ -514,12 +516,32 @@ class Ai(PluginBase):
                 for tool_call in last_message.additional_kwargs["tool_calls"]:
                     if tool_call["function"]["name"] == "GenerateImage":
                         # await bot.send_at_message(from_wxid, f"\n🖼️正在生成图片...", [sender_wxid] if is_group else [])
-                        await bot.send_emoji_message(from_wxid, "4977c6a4a01fc1b687cb139e1ec406e3", 1)
+                        # await bot.send_emoji_message(from_wxid, "4977c6a4a01fc1b687cb139e1ec406e3", 1)
                         try:
                             prompt = json.loads(tool_call["function"]["arguments"])["prompt"]
-                            b64_list = await self.generate_image(prompt)
-                            for img_b64 in b64_list:
-                                await bot.send_image_message(from_wxid, image_base64=img_b64)
+                            b64_list,generate_image_result = await self.generate_image(prompt, old_output)
+                            tool_message_content = ""
+                            if generate_image_result:
+                                # 如果有generate_image_result，直接使用
+                                tool_message_content = generate_image_result
+                                # await bot.send_at_message(from_wxid, "\n" + generate_image_result, [sender_wxid] if is_group else [])
+                            else:
+                                # 如果没有result，将b64_list拼接成文本
+                                image_links = []
+                                for img_url in b64_list:
+                                    # await bot.send_image_message(from_wxid, image_base64=img_url)
+                                    image_links.append(f"![image]({img_url})")
+                                tool_message_content = "已生成如下图片：\n" + "\n".join(image_links)
+                            
+                            tool_message = ToolMessage(
+                                tool_call_id=tool_call["id"],
+                                content=tool_message_content,
+                                name="GenerateImage"
+                            )
+                            output = await self.ai.ainvoke({"messages": [tool_message]}, configurable)
+                            last_message = output["messages"][-1]
+                            await bot.send_at_message(from_wxid, "\n" + last_message.content, [sender_wxid] if is_group else [])
+                            
                         except Exception as e:
                             logger.error(f"生成图片失败: {traceback.format_exc()}")
                             await bot.send_at_message(from_wxid, f"\n生成图片失败: {str(e)}", [sender_wxid] if is_group else [])
@@ -528,7 +550,15 @@ class Ai(PluginBase):
                         try:
                             prompt = json.loads(tool_call["function"]["arguments"])["query"]
                             output = await self.internet_access(old_output,prompt)
-                            await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
+                            # await bot.send_at_message(from_wxid, f"\n{output}", [sender_wxid] if is_group else [])
+                            tool_message = ToolMessage(
+                                tool_call_id=tool_call["id"],
+                                content=output,
+                                name="GenerateImage"
+                            )
+                            output = await self.ai.ainvoke({"messages": [tool_message]}, configurable)
+                            last_message = output["messages"][-1]
+                            await bot.send_at_message(from_wxid, "\n" + last_message.content, [sender_wxid] if is_group else [])
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             await bot.send_at_message(from_wxid, f"\n请求失败: {str(e)}", [sender_wxid] if is_group else [])
@@ -541,24 +571,53 @@ class Ai(PluginBase):
             )
             logger.error(traceback.format_exc())
 
-    async def generate_image(self, prompt: str) -> list:
+    async def generate_image(self, prompt: str, input_message: str) -> list:
         client = AsyncOpenAI(
             base_url=self.image_base_url,
             api_key=self.image_api_key
         )
 
         try:
-            resp = await client.images.generate(
-                model=self.image_model_name,
-                prompt=prompt,
-                size=self.image_size,
-                n=1,
-                extra_body=self.image_additional_param
-            )
             b64_list = []
-            for item in resp.data:
-                b64_list.append(item.url)
-            return b64_list
+            chat_completion_resp = None
+            if self.image_output_type == "imageGenerate":
+                resp = await client.images.generate(
+                    model=self.image_model_name,
+                    prompt=prompt,
+                    size=self.image_size,
+                    n=1,
+                    extra_body=self.image_additional_param
+                )
+                
+                for item in resp.data:
+                    b64_list.append(item.url)
+
+            elif self.image_output_type == "chatCompletion":
+                openai_messages = []
+                openai_messages.append({"role": "system", "content": "你是一个资深绘画大师，根据用户的要求，生成图片或修图，你的回复必须包含绘制完成的图片。"})
+                for msg in input_message["messages"]:
+                    if isinstance(msg, HumanMessage):
+                        openai_messages.append({"role": "user", "content": msg.content})
+                    elif isinstance(msg, AIMessage) and msg.content:
+                        openai_messages.append({"role": "assistant", "content": msg.content})
+                    elif isinstance(msg, ToolMessage) and msg.content:
+                        openai_messages.append({"role": "tool", "content": msg.content})
+
+                resp = await client.chat.completions.create(
+                model=self.image_model_name,
+                messages=openai_messages,
+                stream=False,
+                )
+                chat_completion_resp = resp.choices[0].message.content
+                logger.debug(chat_completion_resp)
+                # 提取所有图片URL
+                IMAGE_URL_PATTERN = r'\[image\]\((.*?)\)'
+                img_urls = re.findall(IMAGE_URL_PATTERN, chat_completion_resp)
+                for img_url in img_urls:
+                    b64_list.append(img_url)
+
+            return b64_list,chat_completion_resp
+            
         except:
             logger.error(traceback.format_exc())
             raise
@@ -571,7 +630,7 @@ class Ai(PluginBase):
         try:
             # Convert langchain messages to OpenAI format
             openai_messages = []
-            openai_messages.append({"role": "system", "content": "现在时间是：" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "，你是一个网络实时信息搜索工具，你根据用户的问题，使用联网搜索能力搜索相关信息，并总结返回搜索结果。"})
+            openai_messages.append({"role": "system", "content": "现在时间是：" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "，你是一个网络实时信息搜索工具，你根据用户的问题，使用联网搜索能力搜索相关信息，并总结返回搜索结果,要求简明扼要，排版整齐。"})
             for msg in input_message["messages"]:
                 if isinstance(msg, HumanMessage):
                     openai_messages.append({"role": "user", "content": msg.content})

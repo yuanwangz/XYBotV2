@@ -63,6 +63,7 @@ prompt = """你是一个叫XYBot友好的微信AI机器人。"""
 # 重要：接口需要是OpenAI API格式
 base-url = ""   # 会覆盖来自主设置的设置。不设置则会从主设置读取。
 api-key = ""   # 会覆盖来自主设置的设置。不设置则会从主设置读取。
+image-output-type = "imageGenerate" #生图接口类型imageGenerate、chatCompletion
 
 # AI模型名
 model-name = ""

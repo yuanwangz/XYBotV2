@@ -38,12 +38,12 @@ class WechatAPIClient(LoginMixin, MessageMixin, FriendMixin, ChatroomMixin, User
             raise UserLoggedOut("请先登录")
         elif not self.ignore_protect and protector.check(14400):
             raise BanProtection("登录新设备后4小时内请不要操作以避免风控")
-        
-        output = ""
-        for id in at:
-            nickname = await self.get_nickname(id)
-            output += f"@{nickname}\u2005"
+        if content.strip():
+            output = ""
+            for id in at:
+                nickname = await self.get_nickname(id)
+                output += f"@{nickname}\u2005"
 
-        output += content
-        
-        return await self.send_text_message(wxid, output, at)
+            output += content
+            
+            return await self.send_text_message(wxid, output, at)
