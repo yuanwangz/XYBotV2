@@ -599,6 +599,7 @@ class Ai(PluginBase):
                     if isinstance(msg, HumanMessage):
                         openai_messages.append({"role": "user", "content": msg.content})
                     elif isinstance(msg, AIMessage) and msg.content:
+                        msg.tool_calls = []
                         openai_messages.append({"role": "assistant", "content": msg.content})
                     # elif isinstance(msg, ToolMessage) and msg.content:
                     #     openai_messages.append({"role": "tool", "content": msg.content})
