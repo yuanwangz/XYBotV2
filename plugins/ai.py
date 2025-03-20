@@ -600,8 +600,8 @@ class Ai(PluginBase):
                         openai_messages.append({"role": "user", "content": msg.content})
                     elif isinstance(msg, AIMessage) and msg.content:
                         openai_messages.append({"role": "assistant", "content": msg.content})
-                    elif isinstance(msg, ToolMessage) and msg.content:
-                        openai_messages.append({"role": "tool", "content": msg.content})
+                    # elif isinstance(msg, ToolMessage) and msg.content:
+                    #     openai_messages.append({"role": "tool", "content": msg.content})
 
                 resp = await client.chat.completions.create(
                 model=self.image_model_name,
