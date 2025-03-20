@@ -143,6 +143,13 @@ class MessageMixin(WechatAPIClientBase):
                 json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Content": content, "Type": 1, "At": at_str}
                 response = await session.post(f'http://{self.ip}:{self.port}/SendTextMsg', json=json_param)
                 json_resp = await response.json()
+                # 如果有图片链接，循环发送所有图片
+                if img_matches:
+                    # 保存最后一个图片URL以保持兼容性
+                    self.last_img_url = img_matches[-1]
+                    # 循环发送所有图片
+                    for img_url in img_matches:
+                        await self._send_image_message(wxid, image_base64=img_url)
                 if json_resp.get("Success"):
                     logger.info("发送文字消息: 对方wxid:{} at:{} 内容:{}", wxid, at, content)
                     data = json_resp.get("Data")
@@ -150,14 +157,7 @@ class MessageMixin(WechatAPIClientBase):
                         0].get("NewMsgId")
                 else:
                     self.error_handler(json_resp)
-                    
-        # 如果有图片链接，循环发送所有图片
-        if img_matches:
-            # 保存最后一个图片URL以保持兼容性
-            self.last_img_url = img_matches[-1]
-            # 循环发送所有图片
-            for img_url in img_matches:
-                await self._send_image_message(wxid, image_base64=img_url)
+
 
     async def send_image_message(self, wxid: str, image_path: str = "", image_base64: str = "") -> tuple[int, int, int]:
         """发送图片消息。
