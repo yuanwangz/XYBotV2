@@ -145,8 +145,6 @@ class MessageMixin(WechatAPIClientBase):
                 json_resp = await response.json()
                 # 如果有图片链接，循环发送所有图片
                 if img_matches:
-                    # 保存最后一个图片URL以保持兼容性
-                    self.last_img_url = img_matches[-1]
                     # 循环发送所有图片
                     for img_url in img_matches:
                         await self._send_image_message(wxid, image_base64=img_url)
@@ -157,6 +155,12 @@ class MessageMixin(WechatAPIClientBase):
                         0].get("NewMsgId")
                 else:
                     self.error_handler(json_resp)
+            else:
+                # 如果有图片链接，循环发送所有图片
+                if img_matches:
+                    # 循环发送所有图片
+                    for img_url in img_matches:
+                        await self._send_image_message(wxid, image_base64=img_url)
 
 
     async def send_image_message(self, wxid: str, image_path: str = "", image_base64: str = "") -> tuple[int, int, int]:
