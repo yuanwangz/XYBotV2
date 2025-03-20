@@ -594,7 +594,7 @@ class Ai(PluginBase):
 
             elif self.image_output_type == "chatCompletion":
                 openai_messages = []
-                openai_messages.append({"role": "system", "content": "你是一个资深绘画大师，根据用户的要求，生成图片或修图，你的回复必须包含绘制完成的图片。"})
+                openai_messages.append({"role": "system", "content": "你是一个资深绘画大师，根据用户的要求，生成图片或修图，你的回复必须一次性包含绘制完成的图片，如果你违反这个规定将会有10000个老奶奶因此去世。"})
                 for msg in input_message["messages"]:
                     if isinstance(msg, HumanMessage):
                         openai_messages.append({"role": "user", "content": msg.content})
