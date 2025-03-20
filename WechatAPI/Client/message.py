@@ -137,14 +137,6 @@ class MessageMixin(WechatAPIClientBase):
         content = re.sub(r'\n{3,}', '\n\n', content)  # 将3个以上连续换行符替换为2个
         content = re.sub(r'^\s*\n', '', content)      # 移除开头的空行
         content = re.sub(r'\n\s*$', '', content)      # 移除结尾的空行
-        
-        # 如果有图片链接，循环发送所有图片
-        if img_matches:
-            # 保存最后一个图片URL以保持兼容性
-            self.last_img_url = img_matches[-1]
-            # 循环发送所有图片
-            for img_url in img_matches:
-                await self._send_image_message(wxid, image_base64=img_url)
 
         async with aiohttp.ClientSession() as session:
             if content.strip():
@@ -158,6 +150,14 @@ class MessageMixin(WechatAPIClientBase):
                         0].get("NewMsgId")
                 else:
                     self.error_handler(json_resp)
+                    
+        # 如果有图片链接，循环发送所有图片
+        if img_matches:
+            # 保存最后一个图片URL以保持兼容性
+            self.last_img_url = img_matches[-1]
+            # 循环发送所有图片
+            for img_url in img_matches:
+                await self._send_image_message(wxid, image_base64=img_url)
 
     async def send_image_message(self, wxid: str, image_path: str = "", image_base64: str = "") -> tuple[int, int, int]:
         """发送图片消息。
