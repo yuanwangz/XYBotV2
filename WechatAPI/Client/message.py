@@ -125,43 +125,69 @@ class MessageMixin(WechatAPIClientBase):
         if at is None:
             at = []
         at_str = ",".join(at)
-                
-        # 处理图片链接
-        img_pattern = r'!\[.*?\]\((.*?)\)'
-        img_matches = re.findall(img_pattern, content)
         
-        # 提取图片链接并移除markdown格式
-        content = re.sub(img_pattern, '', content).strip()
+        # 使用更严格的图片正则表达式，只匹配 ![image] 或 ![*图片] 格式
+        img_pattern = r'!\[(image|.*?图片)\]\((.*?)\)'
         
-        # 清理多余的换行符和空行
-        content = re.sub(r'\n{3,}', '\n\n', content)  # 将3个以上连续换行符替换为2个
-        content = re.sub(r'^\s*\n', '', content)      # 移除开头的空行
-        content = re.sub(r'\n\s*$', '', content)      # 移除结尾的空行
-
+        # 将原始内容按图片分割成多个部分
+        parts = []
+        last_end = 0
+        
+        for match in re.finditer(img_pattern, content):
+            # 添加图片前的文本
+            if match.start() > last_end:
+                text_before = content[last_end:match.start()].strip()
+                if text_before:
+                    parts.append({"type": "text", "content": text_before})
+            
+            # 添加图片信息
+            img_url = match.group(2)
+            parts.append({"type": "image", "url": img_url})
+            
+            last_end = match.end()
+        
+        # 添加最后一段文本
+        if last_end < len(content):
+            text_after = content[last_end:].strip()
+            if text_after:
+                parts.append({"type": "text", "content": text_after})
+        
+        # 清理文本部分中多余的换行符和空行
+        for part in parts:
+            if part["type"] == "text":
+                text = part["content"]
+                text = re.sub(r'\n{3,}', '\n\n', text)  # 将3个以上连续换行符替换为2个
+                text = re.sub(r'^\s*\n', '', text)      # 移除开头的空行
+                text = re.sub(r'\n\s*$', '', text)      # 移除结尾的空行
+                part["content"] = text
+        
+        # 按顺序发送各部分
+        last_result = None
+        
         async with aiohttp.ClientSession() as session:
-            if content.strip():
-                json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Content": content, "Type": 1, "At": at_str}
-                response = await session.post(f'http://{self.ip}:{self.port}/SendTextMsg', json=json_param)
-                json_resp = await response.json()
-                # 如果有图片链接，循环发送所有图片
-                if img_matches:
-                    # 循环发送所有图片
-                    for img_url in img_matches:
-                        await self._send_image_message(wxid, image_base64=img_url)
-                if json_resp.get("Success"):
-                    logger.info("发送文字消息: 对方wxid:{} at:{} 内容:{}", wxid, at, content)
-                    data = json_resp.get("Data")
-                    return data.get("List")[0].get("ClientMsgid"), data.get("List")[0].get("Createtime"), data.get("List")[
-                        0].get("NewMsgId")
-                else:
-                    self.error_handler(json_resp)
-            else:
-                # 如果有图片链接，循环发送所有图片
-                if img_matches:
-                    # 循环发送所有图片
-                    for img_url in img_matches:
-                        await self._send_image_message(wxid, image_base64=img_url)
-
+            for part in parts:
+                if part["type"] == "text" and part["content"].strip():
+                    text_content = part["content"]
+                    json_param = {"Wxid": self.wxid, "ToWxid": wxid, "Content": text_content, "Type": 1, "At": at_str}
+                    response = await session.post(f'http://{self.ip}:{self.port}/SendTextMsg', json=json_param)
+                    json_resp = await response.json()
+                    
+                    if json_resp.get("Success"):
+                        logger.info("发送文字消息: 对方wxid:{} at:{} 内容:{}", wxid, at, text_content)
+                        data = json_resp.get("Data")
+                        last_result = (data.get("List")[0].get("ClientMsgid"), 
+                                       data.get("List")[0].get("Createtime"), 
+                                       data.get("List")[0].get("NewMsgId"))
+                    else:
+                        self.error_handler(json_resp)
+                
+                elif part["type"] == "image":
+                    await self._send_image_message(wxid, image_base64=part["url"])
+        
+        # 如果内容为空或只有图片，确保返回最后一个发送操作的结果
+        # return data.get("List")[0].get("ClientMsgid"), data.get("List")[0].get("Createtime"), data.get("List")[
+        #                 0].get("NewMsgId")
+        return last_result
 
     async def send_image_message(self, wxid: str, image_path: str = "", image_base64: str = "") -> tuple[int, int, int]:
         """发送图片消息。
