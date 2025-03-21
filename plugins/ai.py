@@ -25,8 +25,12 @@ import re
 
 
 class GenerateImage(BaseModel):
-    """Generate a image using AI. 用AI生成一个图片。"""
+    """文生图工具，根据输入的文生图提示词生成单张图片"""
     prompt: str = Field(..., description="The prompt(or description) of image")
+    
+class GenerateArticleWithImages(BaseModel):
+    """图文工具，根据需求描述生成长篇图文，包含文字内容和多配图"""
+    prompt: str = Field(..., description="需求描述，用于生成图文内容")
 
 class InternetAccess(BaseModel):
     """Access the internet to search for real-time information and answer queries. This tool allows retrieving up-to-date data from search engines to provide accurate responses about current events, facts, and general knowledge."""
@@ -179,6 +183,7 @@ class Ai(PluginBase):
         tools = []
         if self.image_output:
             tools.append(GenerateImage)
+            tools.append(GenerateArticleWithImages)
             self.llm = self.llm.bind_tools(tools)
         if self.enable_internet_access:
             tools.append(InternetAccess)
@@ -514,7 +519,11 @@ class Ai(PluginBase):
             # 检查是否有图片生成tool call
             if last_message.additional_kwargs.get("tool_calls"):
                 for tool_call in last_message.additional_kwargs["tool_calls"]:
-                    if tool_call["function"]["name"] == "GenerateImage":
+                    if tool_call["function"]["name"] == "GenerateImage" or tool_call["function"]["name"] == "GenerateArticleWithImages":
+                        if tool_call["function"]["name"] == "GenerateArticleWithImages":
+                            logger.debug("\n🖼️正在生成图文...")
+                        else:
+                            logger.debug("\n🖼️正在生成图片...")
                         # await bot.send_at_message(from_wxid, f"\n🖼️正在生成图片...", [sender_wxid] if is_group else [])
                         # await bot.send_emoji_message(from_wxid, "4977c6a4a01fc1b687cb139e1ec406e3", 1)
                         try:
@@ -546,7 +555,7 @@ class Ai(PluginBase):
                             logger.error(f"生成图片失败: {traceback.format_exc()}")
                             await bot.send_at_message(from_wxid, f"\n生成图片失败: {str(e)}", [sender_wxid] if is_group else [])
                     elif tool_call["function"]["name"] == "InternetAccess":
-                        logger.debug("请求联网AI的API, thread id: {}", thread_id)
+                        logger.debug("\n🔍正在搜索互联网...")
                         try:
                             prompt = json.loads(tool_call["function"]["arguments"])["query"]
                             output = await self.internet_access(old_output,prompt)
@@ -594,7 +603,7 @@ class Ai(PluginBase):
 
             elif self.image_output_type == "chatCompletion":
                 openai_messages = []
-                openai_messages.append({"role": "system", "content": "你是一个资深绘画大师，没有谁比你更专业。规则：1、根据用户的要求，生成图片或修图。2、对于修图需要保持原图的风格不变。3、你必须在本轮对话中给出图片,即使用户没有提供具体的需求。4、绝不允许编造不存在的图片。你必须遵守这些规则，否则你将失去你的工作。"})
+                openai_messages.append({"role": "system", "content": "你是一个资深绘画大师，没有谁比你更专业。规则：1、根据用户的要求，生成图片或修图。2、对于修图需要保持原图的风格不变。3、你必须在本轮对话中给出图片,即使用户没有提供更详细的要求。4、绝不允许编造不存在的图片。你必须遵守这些规则，否则你将失去你的工作。"})
                 for msg in input_message["messages"]:
                     if isinstance(msg, HumanMessage):
                         openai_messages.append({"role": "user", "content": msg.content})
