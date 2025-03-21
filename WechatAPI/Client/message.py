@@ -127,7 +127,7 @@ class MessageMixin(WechatAPIClientBase):
         at_str = ",".join(at)
         
         # 使用更严格的图片正则表达式，只匹配 ![image] 或 ![*图片] 格式
-        img_pattern = r'!\[(image|.*?图片)\]\((.*?)\)'
+        img_pattern = r'!\[(image|.*?图片|.*?图)\]\((.*?)\)'
         
         # 将原始内容按图片分割成多个部分
         parts = []
